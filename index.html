@@ -90,7 +90,6 @@ button.main:disabled{opacity:.6}
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWFvXBKo_LFclHR3h16O_hi1nkyaw2givOa-RvqIO_K5KYWXZg6KWakFjk395Yit1iKg/exec";
 // মেমোতে যা ছাপা হবে
 const BRANCH = "Sylhet";                  // বুকিং শাখার নাম
-const OFFICER = "Md. Salauddin Hossen";   // Booking Officer এর নাম
 const PRINT_DX = 0, PRINT_DY = 0;         // প্রিন্ট সরাতে হলে (pt): DX ডানে, DY নিচে
 
 const D = {
@@ -224,6 +223,8 @@ function nowStr() {
 $("newBtn").onclick = () => { $("done").style.display = "none"; $("sp").focus(); };
 $("printBtn").onclick = () => {
   if (!last) return;
+  const pr = store.get("printed", {}), isCopy = (pr[last.no] || 0) >= 1;
+  pr[last.no] = (pr[last.no] || 0) + 1; store.set("printed", pr);
   const mo = money(last), memo = $("memo"); memo.textContent = "";
   const dest = last.branch.replace(/\s*\([^()]*\)\s*\[\d+\]$/, "");
   const SLIPS = [0, 266.2, 540];
@@ -237,7 +238,7 @@ $("printBtn").onclick = () => {
   };
   SLIPS.forEach(off => {
     const s = document.createElement("div"); s.style.left = PRINT_DX + "pt"; s.style.top = (off + PRINT_DY) + "pt"; s.style.width = "612pt"; s.style.height = "260pt";
-    put(s, "COPY", 85.5, { l: 67.5, size: 22.5, bold: true, color: "#f00" });
+    if (isCopy) put(s, "COPY", 85.5, { l: 67.5, size: 22.5, bold: true, color: "#f00" });
     put(s, BRANCH, 40.5, { r: 490 }); put(s, last.no, 40.5, { r: 582, bold: true });
     put(s, last.senderName, 70.5, { r: 210 }); put(s, last.receiverName, 70.5, { r: 396 }); put(s, last.when, 70.5, { r: 582 });
     put(s, BRANCH, 88.5, { r: 210 }); put(s, dest, 88.5, { r: 396 }); put(s, dest, 88.5, { r: 582 });
@@ -246,7 +247,7 @@ $("printBtn").onclick = () => {
     const cols = [[216.3, last.lot], [247, mo.ca], [290.7, mo.ccC], [321.3, mo.ccT], [360, mo.tc === null ? "" : mo.tc],
       [402.5, mo.carC], [432.4, mo.carT], [475.7, mo.vat], [518.3, mo.paid], [579.6, mo.due]];
     cols.forEach(([c, v]) => { if (v !== "") put(s, String(v), 159.7, { c, size: 8.2 }); });
-    put(s, words(mo.total), 195, { r: 582, size: 8.2 }); put(s, OFFICER, 217.5, { r: 582, size: 8.2 });
+    put(s, words(mo.total), 195, { r: 582, size: 8.2 });
     memo.appendChild(s);
   });
   window.print();
