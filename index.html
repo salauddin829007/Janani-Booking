@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>পার্সেল বুকিং - জননী এক্সপ্রেস</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2433;--muted:#6b7385;--line:#cfd5e0;--bg:#f4f6fa;--navy:#222f46;--ok:#1b7a43}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Bengali",system-ui,sans-serif;font-size:16px}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:26px;margin:8px 0 18px;text-align:center}
+form{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.row{display:grid;gap:14px;margin-bottom:14px}
+.r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:1fr 2fr 1fr}
+@media(max-width:620px){.r2,.r3{grid-template-columns:1fr}}
+label{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+input[type=text],input[type=tel],input[type=number],select{width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fafafa;color:var(--ink)}
+input:focus,select:focus,button:focus-visible{outline:2px solid #3b6fd4;outline-offset:1px}
+.opts{display:flex;gap:22px;flex-wrap:wrap;padding:10px 0}
+.opts label{display:flex;align-items:center;gap:8px;margin:0;color:var(--ink);cursor:pointer}
+.opts input{width:20px;height:20px}
+fieldset{border:0;padding:0;margin:0}
+legend{font-size:14px;color:var(--muted);padding:0}
+button.main{width:100%;padding:14px;border:0;border-radius:6px;background:var(--navy);color:#fff;font:600 17px inherit;font-family:inherit;cursor:pointer}
+button.main:disabled{opacity:.6}
+.err{color:#b3261e;font-size:14px;min-height:20px;margin:4px 0 10px}
+#done{display:none;background:#fff;border:2px solid var(--ok);border-radius:10px;padding:18px;margin-bottom:16px}
+#done b.no{font-size:28px;color:var(--ok)}
+#done .acts{display:flex;gap:10px;margin-top:12px}
+#done button{padding:10px 16px;border-radius:6px;border:1px solid var(--navy);background:#fff;font:inherit;cursor:pointer}
+#warn{display:none;background:#fff4e0;border:1px solid #e0b660;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:14px}
+#memo{display:none}
+@media print{body{background:#fff}main{display:none}#memo{display:block;padding:16px;font-size:15px}#memo td{padding:4px 10px 4px 0;vertical-align:top}}
+</style>
+</head>
+<body>
+<main>
+<h1>পার্সেল বুকিং</h1>
+<div id="warn">Google Sheet যুক্ত করা হয়নি, তাই বুকিং শুধু এই ফোনেই সেভ হচ্ছে। <code>SCRIPT_URL</code> বসালে সব বুকিং Sheet এ জমা হবে।</div>
+<div id="done" role="status">
+  বুকিং হয়েছে। বুকিং নম্বর: <b class="no" id="doneNo"></b>
+  <div class="acts"><button type="button" id="printBtn">মেমো প্রিন্ট করুন</button><button type="button" id="newBtn">নতুন বুকিং</button></div>
+</div>
+
+<form id="f" novalidate>
+  <div class="row r2">
+    <div><label for="sp">প্রেরকের ফোন (আগের বুকিং খুঁজুন)</label><input id="sp" type="tel" inputmode="numeric" maxlength="11" autocomplete="off"></div>
+    <div><label for="sn">প্রেরকের নাম</label><input id="sn" type="text"></div>
+  </div>
+  <div class="row r2">
+    <div><label for="rp">প্রাপকের ফোন</label><input id="rp" type="tel" inputmode="numeric" maxlength="11"></div>
+    <div><label for="rn">প্রাপকের নাম</label><input id="rn" type="text"></div>
+  </div>
+  <div class="row r3">
+    <div><label for="lot">লট (পার্সেল সংখ্যা)</label><input id="lot" type="number" min="1" value="1"></div>
+    <div><label for="desc">পার্সেলের বিবরণ</label><input id="desc" type="text"></div>
+    <div><label for="wt">ওজন (কেজি)</label><input id="wt" type="number" min="0" step="0.1"></div>
+  </div>
+  <div class="row r2">
+    <div><label for="br">গন্তব্য শাখা</label><select id="br"><option value="">শাখা বাছাই করুন</option></select></div>
+    <fieldset><legend>পেমেন্ট</legend>
+      <div class="opts"><label><input type="radio" name="pay" value="Cash"> ক্যাশ</label><label><input type="radio" name="pay" value="To Pay"> টু-পে</label></div>
+    </fieldset>
+  </div>
+  <div class="row r2">
+    <div><label for="tk">টাকা</label><input id="tk" type="number" min="0" inputmode="numeric"></div>
+    <div class="opts"><label><input type="checkbox" id="cond"> কন্ডিশন</label></div>
+  </div>
+  <fieldset class="row"><legend>ডেলিভারি</legend>
+    <div class="opts"><label><input type="radio" name="dv" value="O/D" checked> O/D (অফিস ডেলিভারি)</label><label><input type="radio" name="dv" value="H/D"> H/D (হ্যান্ড ডেলিভারি)</label></div>
+  </fieldset>
+  <div class="err" id="err" role="alert"></div>
+  <button class="main" id="go" type="submit">বুকিং সেভ করুন</button>
+</form>
+</main>
+
+<div id="memo"></div>
+
+<script>
+// Google Apps Script Web App URL এখানে বসান (না বসালে বুকিং শুধু এই ফোনে সেভ হবে)
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWFvXBKo_LFclHR3h16O_hi1nkyaw2givOa-RvqIO_K5KYWXZg6KWakFjk395Yit1iKg/exec";
+
+const D = {
+"রাজশাহী":"232 keshor hat (কেশর হাট);212 kamar para (কামারপাড়া);221 Sirajganj Road (সিরাজগঞ্জ রোড);133 Sirajganj (সিরাজগঞ্জ);234 Shibganj (শিবগঞ্জ);137 Rajshahi (রাজশাহী);141 Pabna (পাবনা);146 Natore (নাটোর);144 Naogaon (নওগাঁ);240 Joypurhat (জয়পুরহাট);165 Ishwardi (ঈশ্বরদী);177 Chapai (চাঁপাই);181 Bogura (বগুড়া);210 Banessor (বানেশ্বর)",
+"ঢাকা":"124 Vulta gausia (ভূলতা);233 Vehicle Rent (ভাড়ার গাড়ি);125 Uttara (উত্তরা);203 Urdu Rd (ঊদুরোড);123 Tongi (টঙ্গী);128 Tekerhat (টেকেরহাট);127 Tangail (টাঙ্গাইল);202 Stadium (স্টেডিয়াম);224 Sonargaon (সোনারগাঁও);196 Siddirgonj (সিদ্ধিরগঞ্জ);242 Shyamoli (শ্যামলী);207 Shariatpur (শরীয়তপুর);122 Savar (সাভার);138 Rajbari (রাজবাড়ী);100 Polton (পল্টন);121 Norsingdi (নরসিংদী);214 Nawabpur (নবাবপুর);120 Narayangonj (নারায়ণগঞ্জ);118 Munshiganj (মুন্সিগঞ্জ);229 Motijheel (মাতিঝিল শাখা);117 Mohammadpur (মোহাম্মদপুর);116 Mohakhali (মহাখালী);115 Mirpur-14 (মিরপুর-১৪);114 Mirpur-11 (মিরপুর-১১);113 Mirpur-10 (মিরপুর-১০);112 Mirpur-1 (মিরপুর-১);111 Mawna (মাওনা);119 Manikganj (মানিকগঞ্জ);218 Malibag (মালিবাগ);149 Madaripur (মাদারীপুর);195 Konabari (কোনাবাড়ী);159 Kishoreganj (কিশোরগঞ্জ);237 Khilkhet (খিলক্ষেত);245 Karwan Bazar (কাওরান বাজার);217 Kamrangirchar (কামরাঙ্গীরচর);246 Jurain (জুরাইন);126 JatraBari (যাত্রাবাড়ী);243 Islampur (ইসলামপুর);241 Hemayetpur (হেমায়েতপুর);206 Gulshan (গুলশান);213 Gulistan (গুলিস্থান);168 Gopalganj (গোপালগঞ্জ);223 Ghater chor (ঘাটের চর);110 Gazipur (গাজীপুর);109 GawsiaL.T.Y (ল্যাবরেটরি);108 Gawsia (গাউছিয়া);170 Faridpur (ফরিদপুর);107 English Road (ইংলিশ রোড);222 Diabari (দিয়াবাড়ী);231 Corporate Sale (কর্পোরেট সেল);101 Chunkutia (চুনকুটিয়া);201 ChawkBazar (চকবাজার);209 BongoBazaar (বঙ্গবাজার);193 Bhanga (ভাঙ্গা);182 Bhairab (ভৈরব);236 Banti Bazar (বান্টি বাজার);227 Banglamotor (বাংলামটর);104 BanglaBazar (বাংলাবাজার);106 Banasree (বনশ্রী);105 Baipail (বাইপাইল);103 BaburHat (বাবুরহাট);102 Aganagor (আগানগর);200 Adabar (আদাবর)",
+"রংপুর":"205 Thakurgaon (ঠাকুরগাঁও);134 Saidpur (সৈয়দপুর);136 Rangpur (রংপুর);244 Panchagarh (পঞ্চগড়);191 Lalmonir hat (লালমনির হাট);158 Kurigram (কুড়িগ্রাম);239 Gobindaganj (গোবিন্দগঞ্জ);204 Gaibandha (গাইবান্ধা);172 Dinajpur (দিনাজপুর)",
+"সিলেট":"129 Sylhet (সিলেট);216 Sunamganj (সুনামগঞ্জ);132 Sreemangal (শ্রীমঙ্গল);235 Shaistaganj (শায়েস্তাগঞ্জ);150 MouloviBazar (মৌলভীবাজার);226 Kadamtoli (কদমতলী);198 Hobigonj (হবিগঞ্জ)",
+"খুলনা":"131 Shiromoni (শিরোমনি);135 Satkhira (সাতক্ষিরা);139 R N Road (আর.এন রোড);145 Nowapara (নওয়াপাড়া);147 Narail (নড়াইল);152 Magura (মাগুড়া);155 Lohagara (লোহাগড়া);157 Kushtia (কুষ্টিয়া);160 Khulna (খুলনা);161 Khalishpur (খালিশপুর);190 Kaligonj (কালিগঞ্জ);163 Jhenaidah (ঝিনাইদহ);164 Jashore (যশোর);178 Chuadanga (চুয়াডাঙ্গা);208 Benapole (বেনাপোল);184 Bagerhat (বাগেরহাট)",
+"ময়মনসিংহ":"130 Sherpur (শেরপুর);148 Netrokona (নেত্রকোনা);151 Mymensingh (ময়মনসিংহ);162 Jamalpur (জামালপুর);219 Bhaluka (ভালুকা)",
+"চট্টগ্রাম":"228 Reazuddin Bazar(CTG) (রিয়াজউদ্দিন বাজার);140 Pahartali (পাহাড়তলী);230 Nasirabad (নাছিরাবাদ);189 Muradpur (মুরাদপুর);153 Maijdee (মাইজদী);154 Lakshmipur (লক্ষ্মীপুর);156 Laksam (লাকসাম);225 Khatunganj (খাতুনগঞ্জ);211 Keranir Hat (কেরানীর হাট);167 Haziganj (হাজিগঞ্জ);169 Feni (ফেনী);199 EPZ (ই পি জেড);173 Dewanhat (দেওয়ানহাট);220 Cumilla Road (কুমিল্লাবিশ্বরোড);174 Cumilla (কুমিল্লা);166 Cox's Bazar (কক্সবাজার);176 Chowmuhani (চৌমুহনী);171 Chattogram (চট্টগ্রাম);179 Chandpur (চাঁদপুর);197 Chakaria (চকোরিয়া);238 Bhatiari (ভাটিয়ারী);185 B.Baria (বি-বাড়িয়া);186 Andarkilla (আন্দরকিলা);187 Agrabad (আগ্রাবাদ)",
+"বরিশাল":"142 Pirojpur (পিরোজপুর);143 Patuakhali (পটুয়াখালী);194 Lalmohon (লালমোহন);192 Jhalokati (ঝালকাঠী);215 Gaurnadi (গৌরনদী);175 Charfashion (চরফ্যাশন);180 Bhola (ভোলা);183 Barishal (বরিশাল);188 Amtali (আমতলী)"
+};
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d){ try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+
+// শাখার তালিকা: বিভাগ অনুযায়ী
+const br = $("br");
+for (const [div, list] of Object.entries(D)) {
+  const g = document.createElement("optgroup"); g.label = div + " বিভাগ";
+  list.split(";").forEach(s => {
+    const i = s.indexOf(" "), code = s.slice(0, i), name = s.slice(i + 1);
+    const o = document.createElement("option"); o.value = name + " [" + code + "]"; o.textContent = name + " - " + code;
+    g.appendChild(o);
+  });
+  br.appendChild(g);
+}
+if (!SCRIPT_URL) $("warn").style.display = "block";
+
+// প্রেরকের ফোন দিয়ে আগের নাম খোঁজা
+$("sp").addEventListener("input", () => {
+  const p = $("sp").value.replace(/\D/g, ""); $("sp").value = p;
+  if (p.length === 11) { const n = store.get("senders", {})[p]; if (n && !$("sn").value) $("sn").value = n; }
+});
+$("rp").addEventListener("input", () => { $("rp").value = $("rp").value.replace(/\D/g, ""); });
+
+let last = null;
+const val = n => (document.querySelector('input[name="' + n + '"]:checked') || {}).value || "";
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const d = {
+    senderPhone: $("sp").value.trim(), senderName: $("sn").value.trim(),
+    receiverPhone: $("rp").value.trim(), receiverName: $("rn").value.trim(),
+    lot: $("lot").value, desc: $("desc").value.trim(), weight: $("wt").value,
+    branch: br.value, pay: val("pay"), taka: $("tk").value,
+    condition: $("cond").checked ? "হ্যাঁ" : "না", delivery: val("dv")
+  };
+  let m = "";
+  if (!/^01\d{9}$/.test(d.senderPhone)) m = "প্রেরকের ফোন ১১ digit এর হতে হবে (01 দিয়ে শুরু)।";
+  else if (!d.senderName) m = "প্রেরকের নাম লিখুন।";
+  else if (!/^01\d{9}$/.test(d.receiverPhone)) m = "প্রাপকের ফোন ১১ digit এর হতে হবে (01 দিয়ে শুরু)।";
+  else if (!d.receiverName) m = "প্রাপকের নাম লিখুন।";
+  else if (!(+d.lot >= 1)) m = "লট কমপক্ষে ১ হতে হবে।";
+  else if (!d.branch) m = "গন্তব্য শাখা বাছাই করুন।";
+  else if (!d.pay) m = "ক্যাশ নাকি টু-পে, বাছাই করুন।";
+  else if (d.taka === "") m = "টাকার পরিমাণ লিখুন।";
+  $("err").textContent = m; if (m) return;
+
+  $("go").disabled = true; $("go").textContent = "সেভ হচ্ছে...";
+  let no = "";
+  try {
+    if (SCRIPT_URL) {
+      const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(d) });
+      const j = await r.json(); if (!j.ok) throw new Error(j.error || "সমস্যা");
+      no = j.no;
+    } else {
+      const n = store.get("counter", 0) + 1; store.set("counter", n);
+      no = "JE-" + String(n).padStart(4, "0");
+      const all = store.get("bookings", []); all.push({ no, time: new Date().toISOString(), ...d }); store.set("bookings", all);
+    }
+  } catch (x) {
+    $("err").textContent = "বুকিং সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+    $("go").disabled = false; $("go").textContent = "বুকিং সেভ করুন"; return;
+  }
+  const s = store.get("senders", {}); s[d.senderPhone] = d.senderName; store.set("senders", s);
+  last = { no, ...d };
+  $("doneNo").textContent = no; $("done").style.display = "block";
+  $("f").reset(); $("lot").value = 1; scrollTo(0, 0);
+  $("go").disabled = false; $("go").textContent = "বুকিং সেভ করুন";
+});
+
+$("newBtn").onclick = () => { $("done").style.display = "none"; $("sp").focus(); };
+$("printBtn").onclick = () => {
+  if (!last) return;
+  const t = new Date().toLocaleString("bn-BD");
+  const rows = [["বুকিং নম্বর", last.no], ["তারিখ", t], ["প্রেরক", last.senderName + " (" + last.senderPhone + ")"],
+    ["প্রাপক", last.receiverName + " (" + last.receiverPhone + ")"], ["গন্তব্য শাখা", last.branch], ["লট", last.lot],
+    ["বিবরণ", last.desc || "-"], ["ওজন", last.weight ? last.weight + " কেজি" : "-"], ["পেমেন্ট", last.pay + " - " + last.taka + " টাকা"],
+    ["কন্ডিশন", last.condition], ["ডেলিভারি", last.delivery]];
+  const memo = $("memo"); memo.textContent = "";
+  const h = document.createElement("h2"); h.textContent = "জননী এক্সপ্রেস পার্সেল সার্ভিস - বুকিং মেমো"; memo.appendChild(h);
+  const tb = document.createElement("table");
+  rows.forEach(([a, b]) => { const tr = tb.insertRow(); tr.insertCell().textContent = a; tr.insertCell().textContent = b; });
+  memo.appendChild(tb); window.print();
+};
+</script>
+</body>
+</html>
