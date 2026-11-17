@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>পার্সেল বুকিং - জননী এক্সপ্রেস</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2433;--muted:#6b7385;--line:#cfd5e0;--bg:#f4f6fa;--navy:#222f46;--ok:#1b7a43}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Bengali",system-ui,sans-serif;font-size:16px}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:26px;margin:8px 0 18px;text-align:center}
+form{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.row{display:grid;gap:14px;margin-bottom:14px}
+.r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:1fr 2fr 1fr}
+@media(max-width:620px){.r2,.r3{grid-template-columns:1fr}}
+label{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+input[type=text],input[type=tel],input[type=number],select{width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fafafa;color:var(--ink)}
+input:focus,select:focus,button:focus-visible{outline:2px solid #3b6fd4;outline-offset:1px}
+.opts{display:flex;gap:22px;flex-wrap:wrap;padding:10px 0}
+.opts label{display:flex;align-items:center;gap:8px;margin:0;color:var(--ink);cursor:pointer}
+.opts input{width:20px;height:20px}
+.opts input.amt{width:150px;height:auto}
+.bad{border-color:#b3261e!important;background:#fdecea!important}
+fieldset{border:0;padding:0;margin:0}
+legend{font-size:14px;color:var(--muted);padding:0}
+button.main{width:100%;padding:14px;border:0;border-radius:6px;background:var(--navy);color:#fff;font:600 17px inherit;font-family:inherit;cursor:pointer}
+button.main:disabled{opacity:.6}
+.err{color:#b3261e;font-size:14px;min-height:20px;margin:4px 0 10px}
+#done{display:none;background:#fff;border:2px solid var(--ok);border-radius:10px;padding:18px;margin-bottom:16px}
+#done b.no{font-size:28px;color:var(--ok)}
+#done .acts{display:flex;gap:10px;margin-top:12px}
+#done button{padding:10px 16px;border-radius:6px;border:1px solid var(--navy);background:#fff;font:inherit;cursor:pointer}
+#warn{display:none;background:#fff4e0;border:1px solid #e0b660;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:14px}
+#memo{display:none}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+#lock{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+#lock form{width:100%;max-width:340px;text-align:center}
+#lock h2{margin:0 0 14px}
+#vList .bar{display:flex;gap:10px;margin-bottom:10px}
+#vList .bar input{flex:1;min-width:0}
+#vList .bar button{width:auto;padding:12px 16px;white-space:nowrap}
+#cnt{font-size:14px;color:var(--muted);margin:4px 0 10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.card b{font-size:18px}.card small{display:block;color:var(--muted);font-size:14px}
+.card button{padding:8px 14px;border:1px solid var(--navy);border-radius:6px;background:#fff;font:inherit;cursor:pointer}
+.lnk{border:0;background:none;color:#3b6fd4;font:inherit;cursor:pointer;padding:0;margin-bottom:6px}
+#lockBtn{float:right;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline}
+@page{size:letter;margin:0}
+@media print{body{background:#fff}main{display:none}#memo{display:block;position:relative;width:612pt;height:792pt;overflow:hidden;font-family:Roboto,Arial,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}#memo div{position:absolute;white-space:nowrap;line-height:1}}
+</style>
+</head>
+<body>
+<div id="lock"><form id="lf"><h2>PIN দিন</h2><input id="pin" type="password" inputmode="numeric" autocomplete="off" aria-label="PIN"><div class="err" id="lerr" role="alert"></div><button class="main" type="submit">প্রবেশ করুন</button></form></div>
+<main>
+<button type="button" id="lockBtn">লক করুন</button>
+<section id="vList">
+  <h1>বুকিং তালিকা</h1>
+  <div class="bar"><input id="q" type="text" placeholder="CN নম্বর বা ফোন নম্বর খুঁজুন" aria-label="খুঁজুন"><button class="main" id="addBtn" type="button">+ নতুন বুকিং</button></div>
+  <div id="cnt"></div>
+  <div id="list"></div>
+</section>
+<section id="vForm" style="display:none">
+<button type="button" id="backBtn" class="lnk">← তালিকায় ফিরুন</button>
+<h1>পার্সেল বুকিং</h1>
+<div id="warn">Google Sheet যুক্ত করা হয়নি, তাই বুকিং শুধু এই ফোনেই সেভ হচ্ছে। <code>SCRIPT_URL</code> বসালে সব বুকিং Sheet এ জমা হবে।</div>
+<div id="done" role="status">
+  বুকিং হয়েছে। বুকিং নম্বর: <b class="no" id="doneNo"></b>
+  <div id="sum" style="margin-top:8px;font-size:15px"></div>
+  <div class="acts"><button type="button" id="printBtn">মেমো প্রিন্ট করুন</button><button type="button" id="newBtn">নতুন বুকিং</button><button type="button" id="toList">তালিকা দেখুন</button></div>
+</div>
+
+<form id="f" novalidate>
+  <div class="row r2">
+    <div><label for="sp">প্রেরকের ফোন (আগের বুকিং খুঁজুন)</label><input id="sp" type="tel" inputmode="numeric" maxlength="11" autocomplete="off"></div>
+    <div><label for="sn">প্রেরকের নাম</label><input id="sn" type="text"></div>
+  </div>
+  <div class="row r2">
+    <div><label for="rp">প্রাপকের ফোন</label><input id="rp" type="tel" inputmode="numeric" maxlength="11"></div>
+    <div><label for="rn">প্রাপকের নাম</label><input id="rn" type="text"></div>
+  </div>
+  <div class="row" style="grid-template-columns:1fr 3fr">
+    <div><label for="lot">লট (পার্সেল সংখ্যা)</label><input id="lot" type="number" min="1" value="1"></div>
+    <div><label for="desc">পার্সেলের বিবরণ</label><input id="desc" type="text"></div>
+  </div>
+  <div class="row r2">
+    <div><label for="br">গন্তব্য শাখা</label><select id="br"><option value="">শাখা বাছাই করুন</option></select></div>
+    <fieldset><legend>পেমেন্ট</legend>
+      <div class="opts" id="payBox"><label><input type="radio" name="pay" value="Cash"> ক্যাশ</label><label><input type="radio" name="pay" value="To Pay"> টু-পে</label>
+        <input id="tk" class="amt" type="number" min="0" inputmode="numeric" placeholder="ক্যারিং চার্জ (টাকা)" aria-label="ক্যারিং চার্জ (টাকা)" style="display:none"></div>
+    </fieldset>
+  </div>
+  <div class="row"><div class="opts"><label><input type="checkbox" id="cond"> কন্ডিশন</label></div></div>
+  <div class="row r2" id="condBox" style="display:none">
+    <div><label for="ca">কন্ডিশন অ্যামাউন্ট (টাকা)</label><input id="ca" type="number" min="0" inputmode="numeric" value="0"></div>
+    <fieldset style="grid-column:1/-1"><legend>কন্ডিশন চার্জ</legend>
+      <div class="opts" id="ccBox"><label><input type="radio" name="ccpay" value="Cash"> ক্যাশ</label><label><input type="radio" name="ccpay" value="To Pay"> টু-পে</label>
+        <input id="cc" class="amt" type="number" min="0" inputmode="numeric" placeholder="কন্ডিশন চার্জ (টাকা)" aria-label="কন্ডিশন চার্জ (টাকা)" style="display:none"></div>
+    </fieldset>
+  </div>
+  <fieldset class="row"><legend>ডেলিভারি</legend>
+    <div class="opts"><label><input type="radio" name="dv" value="O/D" checked> O/D (অফিস ডেলিভারি)</label><label><input type="radio" name="dv" value="H/D"> H/D (হ্যান্ড ডেলিভারি)</label></div>
+  </fieldset>
+  <div class="err" id="err" role="alert"></div>
+  <button class="main" id="go" type="submit">বুকিং সেভ করুন</button>
+</form>
+</section>
+</main>
+
+<div id="memo"></div>
+
+<script>
+// Google Apps Script Web App URL এখানে বসান (না বসালে বুকিং শুধু এই ফোনে সেভ হবে)
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWFvXBKo_LFclHR3h16O_hi1nkyaw2givOa-RvqIO_K5KYWXZg6KWakFjk395Yit1iKg/exec";
+// মেমোতে যা ছাপা হবে
+const BRANCH = "Sylhet";                  // বুকিং শাখার নাম
+const PRINT_DX = 0, PRINT_DY = -0.4;         // প্রিন্ট সরাতে হলে (pt): DX ডানে, DY নিচে
+
+const D = {
+"রাজশাহী":"232 keshor hat (কেশর হাট);212 kamar para (কামারপাড়া);221 Sirajganj Road (সিরাজগঞ্জ রোড);133 Sirajganj (সিরাজগঞ্জ);234 Shibganj (শিবগঞ্জ);137 Rajshahi (রাজশাহী);141 Pabna (পাবনা);146 Natore (নাটোর);144 Naogaon (নওগাঁ);240 Joypurhat (জয়পুরহাট);165 Ishwardi (ঈশ্বরদী);177 Chapai (চাঁপাই);181 Bogura (বগুড়া);210 Banessor (বানেশ্বর)",
+"ঢাকা":"124 Vulta gausia (ভূলতা);233 Vehicle Rent (ভাড়ার গাড়ি);125 Uttara (উত্তরা);203 Urdu Rd (ঊদুরোড);123 Tongi (টঙ্গী);128 Tekerhat (টেকেরহাট);127 Tangail (টাঙ্গাইল);202 Stadium (স্টেডিয়াম);224 Sonargaon (সোনারগাঁও);196 Siddirgonj (সিদ্ধিরগঞ্জ);242 Shyamoli (শ্যামলী);207 Shariatpur (শরীয়তপুর);122 Savar (সাভার);138 Rajbari (রাজবাড়ী);100 Polton (পল্টন);121 Norsingdi (নরসিংদী);214 Nawabpur (নবাবপুর);120 Narayangonj (নারায়ণগঞ্জ);118 Munshiganj (মুন্সিগঞ্জ);229 Motijheel (মাতিঝিল শাখা);117 Mohammadpur (মোহাম্মদপুর);116 Mohakhali (মহাখালী);115 Mirpur-14 (মিরপুর-১৪);114 Mirpur-11 (মিরপুর-১১);113 Mirpur-10 (মিরপুর-১০);112 Mirpur-1 (মিরপুর-১);111 Mawna (মাওনা);119 Manikganj (মানিকগঞ্জ);218 Malibag (মালিবাগ);149 Madaripur (মাদারীপুর);195 Konabari (কোনাবাড়ী);159 Kishoreganj (কিশোরগঞ্জ);237 Khilkhet (খিলক্ষেত);245 Karwan Bazar (কাওরান বাজার);217 Kamrangirchar (কামরাঙ্গীরচর);246 Jurain (জুরাইন);126 JatraBari (যাত্রাবাড়ী);243 Islampur (ইসলামপুর);241 Hemayetpur (হেমায়েতপুর);206 Gulshan (গুলশান);213 Gulistan (গুলিস্থান);168 Gopalganj (গোপালগঞ্জ);223 Ghater chor (ঘাটের চর);110 Gazipur (গাজীপুর);109 GawsiaL.T.Y (ল্যাবরেটরি);108 Gawsia (গাউছিয়া);170 Faridpur (ফরিদপুর);107 English Road (ইংলিশ রোড);222 Diabari (দিয়াবাড়ী);231 Corporate Sale (কর্পোরেট সেল);101 Chunkutia (চুনকুটিয়া);201 ChawkBazar (চকবাজার);209 BongoBazaar (বঙ্গবাজার);193 Bhanga (ভাঙ্গা);182 Bhairab (ভৈরব);236 Banti Bazar (বান্টি বাজার);227 Banglamotor (বাংলামটর);104 BanglaBazar (বাংলাবাজার);106 Banasree (বনশ্রী);105 Baipail (বাইপাইল);103 BaburHat (বাবুরহাট);102 Aganagor (আগানগর);200 Adabar (আদাবর)",
+"রংপুর":"205 Thakurgaon (ঠাকুরগাঁও);134 Saidpur (সৈয়দপুর);136 Rangpur (রংপুর);244 Panchagarh (পঞ্চগড়);191 Lalmonir hat (লালমনির হাট);158 Kurigram (কুড়িগ্রাম);239 Gobindaganj (গোবিন্দগঞ্জ);204 Gaibandha (গাইবান্ধা);172 Dinajpur (দিনাজপুর)",
+"সিলেট":"129 Sylhet (সিলেট);216 Sunamganj (সুনামগঞ্জ);132 Sreemangal (শ্রীমঙ্গল);235 Shaistaganj (শায়েস্তাগঞ্জ);150 MouloviBazar (মৌলভীবাজার);226 Kadamtoli (কদমতলী);198 Hobigonj (হবিগঞ্জ)",
+"খুলনা":"131 Shiromoni (শিরোমনি);135 Satkhira (সাতক্ষিরা);139 R N Road (আর.এন রোড);145 Nowapara (নওয়াপাড়া);147 Narail (নড়াইল);152 Magura (মাগুড়া);155 Lohagara (লোহাগড়া);157 Kushtia (কুষ্টিয়া);160 Khulna (খুলনা);161 Khalishpur (খালিশপুর);190 Kaligonj (কালিগঞ্জ);163 Jhenaidah (ঝিনাইদহ);164 Jashore (যশোর);178 Chuadanga (চুয়াডাঙ্গা);208 Benapole (বেনাপোল);184 Bagerhat (বাগেরহাট)",
+"ময়মনসিংহ":"130 Sherpur (শেরপুর);148 Netrokona (নেত্রকোনা);151 Mymensingh (ময়মনসিংহ);162 Jamalpur (জামালপুর);219 Bhaluka (ভালুকা)",
+"চট্টগ্রাম":"228 Reazuddin Bazar(CTG) (রিয়াজউদ্দিন বাজার);140 Pahartali (পাহাড়তলী);230 Nasirabad (নাছিরাবাদ);189 Muradpur (মুরাদপুর);153 Maijdee (মাইজদী);154 Lakshmipur (লক্ষ্মীপুর);156 Laksam (লাকসাম);225 Khatunganj (খাতুনগঞ্জ);211 Keranir Hat (কেরানীর হাট);167 Haziganj (হাজিগঞ্জ);169 Feni (ফেনী);199 EPZ (ই পি জেড);173 Dewanhat (দেওয়ানহাট);220 Cumilla Road (কুমিল্লাবিশ্বরোড);174 Cumilla (কুমিল্লা);166 Cox's Bazar (কক্সবাজার);176 Chowmuhani (চৌমুহনী);171 Chattogram (চট্টগ্রাম);179 Chandpur (চাঁদপুর);197 Chakaria (চকোরিয়া);238 Bhatiari (ভাটিয়ারী);185 B.Baria (বি-বাড়িয়া);186 Andarkilla (আন্দরকিলা);187 Agrabad (আগ্রাবাদ)",
+"বরিশাল":"142 Pirojpur (পিরোজপুর);143 Patuakhali (পটুয়াখালী);194 Lalmohon (লালমোহন);192 Jhalokati (ঝালকাঠী);215 Gaurnadi (গৌরনদী);175 Charfashion (চরফ্যাশন);180 Bhola (ভোলা);183 Barishal (বরিশাল);188 Amtali (আমতলী)"
+};
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d){ try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+
+// শাখার তালিকা: বিভাগ অনুযায়ী
+const br = $("br");
+for (const [div, list] of Object.entries(D)) {
+  const g = document.createElement("optgroup"); g.label = div + " বিভাগ";
+  list.split(";").forEach(s => {
+    const i = s.indexOf(" "), code = s.slice(0, i), name = s.slice(i + 1);
+    const o = document.createElement("option"); o.value = name + " [" + code + "]"; o.textContent = name + " - " + code;
+    g.appendChild(o);
+  });
+  br.appendChild(g);
+}
+if (!SCRIPT_URL) $("warn").style.display = "block";
+
+// প্রেরকের ফোন দিয়ে আগের নাম খোঁজা
+$("sp").addEventListener("input", () => {
+  const p = $("sp").value.replace(/\D/g, ""); $("sp").value = p;
+  if (p.length === 11) { const n = store.get("senders", {})[p]; if (n && !$("sn").value) $("sn").value = n; }
+});
+$("rp").addEventListener("input", () => { $("rp").value = $("rp").value.replace(/\D/g, ""); });
+
+$("cond").addEventListener("change", () => { $("condBox").style.display = $("cond").checked ? "" : "none"; });
+document.querySelectorAll('input[name="pay"]').forEach(r => r.addEventListener("change", () => { $("tk").style.display = ""; $("tk").focus(); }));
+document.querySelectorAll('input[name="ccpay"]').forEach(r => r.addEventListener("change", () => { $("cc").style.display = ""; $("cc").focus(); }));
+document.addEventListener("input", e => e.target.classList.remove("bad"));
+document.addEventListener("change", e => { e.target.classList.remove("bad"); const o = e.target.closest(".opts"); if (o) o.classList.remove("bad"); });
+const FIELDS = ["no","when","senderPhone","senderName","receiverPhone","receiverName","lot","desc","w","branch","pay","taka","condition","delivery","status","condAmt","condChg","vat","paid","due","ccPay"];
+let ALL = [];
+const toRec = v => { const o = {}; FIELDS.forEach((k, i) => o[k] = v[i] || ""); return o; };
+async function loadList() {
+  $("cnt").textContent = "লোড হচ্ছে..."; $("list").textContent = "";
+  try {
+    if (SCRIPT_URL) {
+      const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "list", pin: store.get("pin", "") }) });
+      const j = await r.json();
+      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার PIN দিন"); throw new Error("x"); }
+      ALL = j.rows.map(toRec); $("cnt").dataset.total = j.total;
+    } else { ALL = store.get("bookings", []).slice().reverse(); $("cnt").dataset.total = ALL.length; }
+  } catch (e) { $("cnt").textContent = "তালিকা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।"; return; }
+  renderList();
+}
+function renderList() {
+  const q = $("q").value.trim().toLowerCase(), box = $("list"); box.textContent = "";
+  const rows = ALL.filter(r => !q || [r.no, r.senderPhone, r.receiverPhone, r.senderName, r.receiverName].join(" ").toLowerCase().includes(q));
+  const total = +$("cnt").dataset.total || 0;
+  $("cnt").textContent = "মোট " + total + " টি বুকিং" + (ALL.length < total ? " (সর্বশেষ " + ALL.length + " টি দেখানো হচ্ছে)" : "") + (q ? " | পাওয়া গেছে " + rows.length : "");
+  rows.forEach(r => {
+    const m = money(r), c = document.createElement("div"), t = document.createElement("div"), mk = (tag, txt) => { const e = document.createElement(tag); e.textContent = txt; return e; };
+    c.className = "card";
+    t.append(mk("b", r.no), mk("small", r.when), mk("small", r.senderName + " → " + r.receiverName + " (" + String(r.branch).replace(/\s*\([^()]*\)\s*\[\d+\]$/, "") + ")"), mk("small", r.pay + " | মোট " + m.total + " টাকা"));
+    const pb = mk("button", "প্রিন্ট"); pb.type = "button"; pb.onclick = () => printMemo(r);
+    c.append(t, pb); box.appendChild(c);
+  });
+}
+function goList() { $("vForm").style.display = "none"; $("vList").style.display = ""; loadList(); }
+function goForm() { $("vList").style.display = "none"; $("vForm").style.display = ""; $("done").style.display = "none"; $("sp").focus(); }
+$("addBtn").onclick = goForm; $("backBtn").onclick = goList; $("toList").onclick = goList; $("q").addEventListener("input", renderList);
+$("ca").addEventListener("input", () => { const a = +$("ca").value || 0; $("cc").value = a > 0 ? Math.ceil(a / 1000) * 10 : 0; });  // হাজারে বা তার অংশে ১০ টাকা, সর্বনিম্ন ১০
+
+const lockEl = $("lock");
+function showLock(msg) { lockEl.style.display = "flex"; $("lerr").textContent = msg || ""; $("pin").value = ""; $("pin").focus(); }
+async function checkPin(p) {
+  try { const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "check", pin: p }) }); return await r.json(); }
+  catch (e) { return { ok: false, error: "NET" }; }
+}
+if (SCRIPT_URL) {
+  lockEl.style.display = "flex";
+  (async () => { const p = store.get("pin", ""); if (p && (await checkPin(p)).ok) { lockEl.style.display = "none"; goList(); } else showLock(); })();
+} else goList();
+$("lf").addEventListener("submit", async e => {
+  e.preventDefault(); const p = $("pin").value.trim(); if (!p) return;
+  $("lerr").textContent = "যাচাই হচ্ছে...";
+  const j = await checkPin(p);
+  if (j.ok) { store.set("pin", p); lockEl.style.display = "none"; goList(); }
+  else $("lerr").textContent = j.error === "LOCKED" ? "অনেকবার ভুল হয়েছে, ১০ মিনিট পরে চেষ্টা করুন।" : j.error === "NET" ? "ইন্টারনেট দেখুন, আবার চেষ্টা করুন।" : "PIN ভুল।";
+});
+$("lockBtn").onclick = () => { store.set("pin", ""); if (SCRIPT_URL) showLock(); };
+document.addEventListener("wheel", () => { const a = document.activeElement; if (a && a.type === "number") a.blur(); }, { passive: true });
+let last = null;
+const val = n => (document.querySelector('input[name="' + n + '"]:checked') || {}).value || "";
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const d = {
+    senderPhone: $("sp").value.trim(), senderName: $("sn").value.trim(),
+    receiverPhone: $("rp").value.trim(), receiverName: $("rn").value.trim(),
+    lot: $("lot").value, desc: $("desc").value.trim(),
+    branch: br.value, pay: val("pay"), taka: $("tk").value,
+    condition: $("cond").checked ? "হ্যাঁ" : "না", delivery: val("dv"),
+    ccPay: $("cond").checked ? val("ccpay") : "", vat: "0",
+    condAmt: $("cond").checked ? ($("ca").value || "0") : "0",
+    condChg: $("cond").checked && val("ccpay") ? ($("cc").value || "0") : "0"
+  };
+  document.querySelectorAll(".bad").forEach(x => x.classList.remove("bad"));
+  const ph = /^01\d{9}$/, cond = d.condition === "হ্যাঁ";
+  const checks = [
+    [$("sp"), ph.test(d.senderPhone), "প্রেরকের ফোন ১১ digit এর হতে হবে (01 দিয়ে শুরু)।"],
+    [$("sn"), !!d.senderName, "প্রেরকের নাম লিখুন।"],
+    [$("rp"), ph.test(d.receiverPhone), "প্রাপকের ফোন ১১ digit এর হতে হবে (01 দিয়ে শুরু)।"],
+    [$("rn"), !!d.receiverName, "প্রাপকের নাম লিখুন।"],
+    [$("lot"), +d.lot >= 1, "লট কমপক্ষে ১ হতে হবে।"],
+    [$("desc"), !!d.desc, "পার্সেলের বিবরণ লিখুন।"],
+    [br, !!d.branch, "গন্তব্য শাখা বাছাই করুন।"],
+    [$("payBox"), !!d.pay, "ক্যাশ নাকি টু-পে, বাছাই করুন।"],
+    [$("tk"), !d.pay || d.taka !== "", "ক্যারিং চার্জ (টাকা) লিখুন।"]
+  ];
+  if (cond) checks.push(
+    [$("ca"), +d.condAmt > 0, "কন্ডিশন অ্যামাউন্ট লিখুন।"],
+    [$("ccBox"), !!d.ccPay, "কন্ডিশন চার্জ ক্যাশ নাকি টু-পে, বাছাই করুন।"],
+    [$("cc"), !d.ccPay || $("cc").value !== "", "কন্ডিশন চার্জ (টাকা) লিখুন।"]);
+  const bad = checks.filter(c => !c[1]);
+  bad.forEach(c => c[0].classList.add("bad"));
+  const m = bad.length ? bad[0][2] + (bad.length > 1 ? " (লাল ঘর গুলো পূরণ করুন)" : "") : "";
+  if (bad.length && bad[0][0].focus) bad[0][0].focus();
+  $("err").textContent = m; if (m) return;
+  const mo = money(d); d.paid = mo.paid; d.due = mo.due;
+
+  $("go").disabled = true; $("go").textContent = "সেভ হচ্ছে...";
+  let no = "";
+  try {
+    if (SCRIPT_URL) {
+      const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ ...d, pin: store.get("pin", "") }) });
+      const j = await r.json();
+      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার PIN দিন"); throw new Error(j.error || "সমস্যা"); }
+      no = j.no;
+    } else {
+      const n = store.get("counter", 0) + 1; store.set("counter", n);
+      no = "JE-" + String(n).padStart(4, "0");
+      const all = store.get("bookings", []); all.push({ no, when: nowStr(), ...d }); store.set("bookings", all);
+    }
+  } catch (x) {
+    $("err").textContent = "বুকিং সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+    $("go").disabled = false; $("go").textContent = "বুকিং সেভ করুন"; return;
+  }
+  const s = store.get("senders", {}); s[d.senderPhone] = d.senderName; store.set("senders", s);
+  last = { no, when: nowStr(), ...d };
+  $("doneNo").textContent = no; $("done").style.display = "block";
+  const m2 = money(d);
+  $("sum").textContent = (d.condition === "হ্যাঁ" ? "কন্ডিশন " + m2.ca + ", টোটাল কন্ডিশন " + m2.tc + " | " : "") + "ক্যারিং " + (m2.carC + m2.carT) + " | পেইড " + m2.paid + " | ডিউ " + m2.due;
+  $("f").reset(); $("lot").value = 1; $("condBox").style.display = "none"; $("tk").style.display = $("cc").style.display = "none"; scrollTo(0, 0);
+  $("go").disabled = false; $("go").textContent = "বুকিং সেভ করুন";
+});
+
+function money(d) {
+  const n = x => Math.round(+x || 0), cond = d.condition === "হ্যাঁ", cash = d.pay === "Cash", ccCash = d.ccPay === "Cash";
+  const carry = n(d.taka), vat = n(d.vat), ca = cond ? n(d.condAmt) : 0, cc = cond ? n(d.condChg) : 0;
+  const paid = (cash ? carry + vat : 0) + (ccCash ? cc : 0), due = (cash ? 0 : carry + vat) + (ccCash ? 0 : cc);
+  return { ca, ccC: ccCash ? cc : 0, ccT: ccCash ? 0 : cc, tc: cond ? ca + (ccCash ? 0 : cc) : null,
+    carC: cash ? carry : 0, carT: cash ? 0 : carry, vat, paid, due, total: paid + due };
+}
+function words(n) {
+  if (n === 0) return "zero";
+  const o = ["","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+  const t = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+  const b = x => x < 20 ? o[x] : t[Math.floor(x / 10)] + (x % 10 ? " " + o[x % 10] : "");
+  const parts = [];
+  [[1e7,"crore"],[1e5,"lakh"],[1e3,"thousand"],[100,"hundred"]].forEach(([u, nm]) => {
+    if (n >= u) { const q = Math.floor(n / u); parts.push((u > 100 ? b(q) : o[q]) + " " + nm); n %= u; }
+  });
+  if (n > 0) parts.push((parts.length ? "and " : "") + b(n));
+  return parts.join(" ");
+}
+function nowStr() {
+  const d = new Date(), p = x => String(x).padStart(2, "0");
+  return p(d.getDate()) + "-" + p(d.getMonth() + 1) + "-" + d.getFullYear() + ", " + (d.getHours() % 12 || 12) + ":" + p(d.getMinutes()) + (d.getHours() < 12 ? " am" : " pm");
+}
+
+$("newBtn").onclick = () => { $("done").style.display = "none"; $("sp").focus(); };
+function printMemo(last) {
+  const pr = store.get("printed", {}), isCopy = (pr[last.no] || 0) >= 1;
+  pr[last.no] = (pr[last.no] || 0) + 1; store.set("printed", pr);
+  const mo = money(last), memo = $("memo"); memo.textContent = "";
+  const dest = last.branch.replace(/\s*\([^()]*\)\s*\[\d+\]$/, "");
+  const SLIPS = [0, 266.2, 540];
+  const put = (par, text, y, o) => {
+    const e = document.createElement("div"); e.textContent = text; e.style.top = y + "pt";
+    e.style.fontSize = (o.size || 9) + "pt"; if (o.bold) e.style.fontWeight = 700; if (o.color) e.style.color = o.color;
+    if (o.r !== undefined) { e.style.right = (612 - o.r) + "pt"; e.style.textAlign = "right"; }
+    else if (o.c !== undefined) { e.style.left = (o.c - 20) + "pt"; e.style.width = "40pt"; e.style.textAlign = "center"; }
+    else e.style.left = o.l + "pt";
+    par.appendChild(e);
+  };
+  SLIPS.forEach(off => {
+    const s = document.createElement("div"); s.style.left = PRINT_DX + "pt"; s.style.top = (off + PRINT_DY) + "pt"; s.style.width = "612pt"; s.style.height = "250pt";
+    if (isCopy) put(s, "COPY", 84.9, { l: 67.5, size: 22.5, bold: true, color: "#f00" });
+    put(s, BRANCH, 40.5, { r: 490 }); put(s, last.no, 40.5, { r: 582, bold: true });
+    put(s, last.senderName, 70.5, { r: 210 }); put(s, last.receiverName, 70.5, { r: 396 }); put(s, last.when, 70.5, { r: 582 });
+    put(s, BRANCH, 88.5, { r: 210 }); put(s, dest, 88.5, { r: 396 }); put(s, dest, 88.5, { r: 582 });
+    put(s, last.senderPhone, 106.5, { r: 210 }); put(s, last.receiverPhone, 106.5, { r: 396 }); put(s, last.delivery, 106.5, { r: 582 });
+    put(s, last.desc, 159.7, { l: 79.2, size: 8.2 });
+    const cols = [[216.3, last.lot], [247, mo.ca], [290.7, mo.ccC], [321.3, mo.ccT], [360, mo.tc === null ? "" : mo.tc],
+      [402.5, mo.carC], [432.4, mo.carT], [475.7, mo.vat], [518.3, mo.paid], [579.6, mo.due]];
+    cols.forEach(([c, v]) => { if (v !== "") put(s, String(v), 159.7, { c, size: 8.2 }); });
+    put(s, words(mo.total), 195, { r: 582, size: 8.2 });
+    memo.appendChild(s);
+  });
+  window.print();
+}
+$("printBtn").onclick = () => { if (last) printMemo(last); };
+</script>
+</body>
+</html>
