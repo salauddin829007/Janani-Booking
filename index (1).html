@@ -43,11 +43,24 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 #vList .bar input{flex:1;min-width:0}
 #vList .bar button{width:auto;padding:12px 16px;white-space:nowrap}
 #cnt{font-size:14px;color:var(--muted);margin:4px 0 10px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 12px}
+#vList h1{text-align:left;margin:0;font-size:22px}
+#vList .head button{width:auto;padding:12px 16px;white-space:nowrap}
+#refBtn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:0 14px;font-size:20px;cursor:pointer}
+.tw{background:#fff;border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+#tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+#tbl th{background:#222f46;color:#fff;text-align:left;padding:12px 10px;white-space:nowrap;font-weight:600}
+#tbl td{padding:9px 10px;border-bottom:1px solid #e6e9f0;white-space:nowrap}
+#tbl tbody tr:nth-child(even) td{background:#f7f8fb}
+.pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600}
+.cn{background:#e4e8f6;color:#2b3a8c}.cash,.topay{background:#fdeede;color:#c25a00}.svc{background:#e0f3e6;color:#1b7a43}
+.chg{color:#1b7a43;font-weight:700}
+.ico{border:0;background:none;cursor:pointer;padding:4px;color:#444}.ico:hover{color:var(--navy)}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;justify-content:space-between}
 .card b{font-size:18px}.card small{display:block;color:var(--muted);font-size:14px}
 .card button{padding:8px 14px;border:1px solid var(--navy);border-radius:6px;background:#fff;font:inherit;cursor:pointer}
 .lnk{border:0;background:none;color:#3b6fd4;font:inherit;cursor:pointer;padding:0;margin-bottom:6px}
-#lockBtn{float:right;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline}
+#lockBtn{display:block;margin-left:auto;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline}
 @page{size:letter;margin:0}
 @media print{body{background:#fff}main{display:none}#memo{display:block;position:relative;width:612pt;height:792pt;overflow:hidden;font-family:Roboto,Arial,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}#memo div{position:absolute;white-space:nowrap;line-height:1}}
 </style>
@@ -57,10 +70,10 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 <main>
 <button type="button" id="lockBtn">লক করুন</button>
 <section id="vList">
-  <h1>বুকিং তালিকা</h1>
-  <div class="bar"><input id="q" type="text" placeholder="CN নম্বর বা ফোন নম্বর খুঁজুন" aria-label="খুঁজুন"><button class="main" id="addBtn" type="button">+ নতুন বুকিং</button></div>
+  <div class="head"><h1>Booking List</h1><button class="main" id="addBtn" type="button">+ Add Booking</button></div>
+  <div class="bar"><input id="q" type="text" placeholder="Search CN / Phone / Branch" aria-label="Search"><button id="refBtn" type="button" title="রিফ্রেশ" aria-label="রিফ্রেশ">&#8635;</button></div>
   <div id="cnt"></div>
-  <div id="list"></div>
+  <div class="tw"><table id="tbl"><thead><tr><th>Booking Date</th><th>CN</th><th>Destination</th><th>Charge Type</th><th>Charge</th><th>Delivery</th><th>Actions</th></tr></thead><tbody id="list"></tbody></table></div>
 </section>
 <section id="vForm" style="display:none">
 <button type="button" id="backBtn" class="lnk">← তালিকায় ফিরুন</button>
@@ -177,20 +190,23 @@ async function loadList() {
 }
 function renderList() {
   const q = $("q").value.trim().toLowerCase(), box = $("list"); box.textContent = "";
-  const rows = ALL.filter(r => !q || [r.no, r.senderPhone, r.receiverPhone, r.senderName, r.receiverName].join(" ").toLowerCase().includes(q));
+  const rows = ALL.filter(r => !q || [r.no, r.senderPhone, r.receiverPhone, r.senderName, r.receiverName, r.branch].join(" ").toLowerCase().includes(q));
   const total = +$("cnt").dataset.total || 0;
   $("cnt").textContent = "মোট " + total + " টি বুকিং" + (ALL.length < total ? " (সর্বশেষ " + ALL.length + " টি দেখানো হচ্ছে)" : "") + (q ? " | পাওয়া গেছে " + rows.length : "");
+  const ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 8H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3zm-3 11H8v-5h8v5zm3-7a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM18 3H6v4h12V3z"/></svg>';
   rows.forEach(r => {
-    const m = money(r), c = document.createElement("div"), t = document.createElement("div"), mk = (tag, txt) => { const e = document.createElement(tag); e.textContent = txt; return e; };
-    c.className = "card";
-    t.append(mk("b", r.no), mk("small", r.when), mk("small", r.senderName + " → " + r.receiverName + " (" + String(r.branch).replace(/\s*\([^()]*\)\s*\[\d+\]$/, "") + ")"), mk("small", r.pay + " | মোট " + m.total + " টাকা"));
-    const pb = mk("button", "প্রিন্ট"); pb.type = "button"; pb.onclick = () => printMemo(r);
-    c.append(t, pb); box.appendChild(c);
+    const m = money(r), tr = document.createElement("tr");
+    const td = (txt, cls) => { const c = document.createElement("td"); if (cls) { const b = document.createElement("span"); b.className = cls; b.textContent = txt; c.appendChild(b); } else c.textContent = txt; tr.appendChild(c); return c; };
+    td(r.when); td(r.no, "pill cn"); td(String(r.branch).replace(/\s*\([^()]*\)\s*\[\d+\]$/, ""));
+    td(r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")); td("\u09F3" + m.due).className = "chg"; td(r.delivery, "pill svc");
+    const ac = document.createElement("td"), pb = document.createElement("button");
+    pb.type = "button"; pb.className = "ico"; pb.title = "প্রিন্ট"; pb.setAttribute("aria-label", "প্রিন্ট"); pb.innerHTML = ICON; pb.onclick = () => printMemo(r);
+    ac.appendChild(pb); tr.appendChild(ac); box.appendChild(tr);
   });
 }
 function goList() { $("vForm").style.display = "none"; $("vList").style.display = ""; loadList(); }
 function goForm() { $("vList").style.display = "none"; $("vForm").style.display = ""; $("done").style.display = "none"; $("sp").focus(); }
-$("addBtn").onclick = goForm; $("backBtn").onclick = goList; $("toList").onclick = goList; $("q").addEventListener("input", renderList);
+$("addBtn").onclick = goForm; $("refBtn").onclick = loadList; $("backBtn").onclick = goList; $("toList").onclick = goList; $("q").addEventListener("input", renderList);
 $("ca").addEventListener("input", () => { const a = +$("ca").value || 0; $("cc").value = a > 0 ? Math.ceil(a / 1000) * 10 : 0; });  // হাজারে বা তার অংশে ১০ টাকা, সর্বনিম্ন ১০
 
 const lockEl = $("lock");
