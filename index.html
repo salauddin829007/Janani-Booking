@@ -16,7 +16,7 @@ form{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20p
 .r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:1fr 2fr 1fr}
 @media(max-width:620px){.r2,.r3{grid-template-columns:1fr}}
 label{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
-input[type=text],input[type=tel],input[type=number],select{width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fafafa;color:var(--ink)}
+input[type=text],input[type=tel],input[type=number],input[type=password],select{width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fafafa;color:var(--ink)}
 input:focus,select:focus,button:focus-visible{outline:2px solid #3b6fd4;outline-offset:1px}
 .opts{display:flex;gap:22px;flex-wrap:wrap;padding:10px 0}
 .opts label{display:flex;align-items:center;gap:8px;margin:0;color:var(--ink);cursor:pointer}
@@ -36,9 +36,11 @@ button.main:disabled{opacity:.6}
 #memo{display:none}
 input[type=number]{-moz-appearance:textfield}
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-#lock{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
-#lock form{width:100%;max-width:340px;text-align:center}
-#lock h2{margin:0 0 14px}
+#lock{position:fixed;inset:0;background:var(--navy);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+#lock form{width:100%;max-width:340px;text-align:center;background:#fff;border-radius:14px;padding:26px 22px;box-shadow:0 10px 30px rgba(0,0,0,.35);border-top:6px solid #e8a317}
+#lock h2{margin:0 0 4px;color:var(--navy)}
+#lock p{margin:0 0 16px;color:var(--muted);font-size:14px}
+#lock input{text-align:center;font-size:22px;letter-spacing:6px;margin-bottom:6px}
 #vList .bar{display:flex;gap:10px;margin-bottom:10px}
 #vList .bar input{flex:1;min-width:0}
 #vList .bar button{width:auto;padding:12px 16px;white-space:nowrap}
@@ -60,15 +62,15 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .card b{font-size:18px}.card small{display:block;color:var(--muted);font-size:14px}
 .card button{padding:8px 14px;border:1px solid var(--navy);border-radius:6px;background:#fff;font:inherit;cursor:pointer}
 .lnk{border:0;background:none;color:#3b6fd4;font:inherit;cursor:pointer;padding:0;margin-bottom:6px}
-#lockBtn{display:block;margin-left:auto;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline}
+#lockBtn{display:block;margin-left:auto;border:0;background:var(--navy);color:#fff;border-radius:6px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
 @page{size:letter;margin:0}
 @media print{body{background:#fff}main{display:none}#memo{display:block;position:relative;width:612pt;height:792pt;overflow:hidden;font-family:Roboto,Arial,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}#memo div{position:absolute;white-space:nowrap;line-height:1}}
 </style>
 </head>
 <body>
-<div id="lock"><form id="lf"><h2>PIN দিন</h2><input id="pin" type="password" inputmode="numeric" autocomplete="off" aria-label="PIN"><div class="err" id="lerr" role="alert"></div><button class="main" type="submit">প্রবেশ করুন</button></form></div>
+<div id="lock"><form id="lf"><h2>জননী এক্সপ্রেস</h2><p>PIN দিয়ে প্রবেশ করুন</p><input id="pin" type="password" inputmode="numeric" autocomplete="off" aria-label="PIN"><div class="err" id="lerr" role="alert"></div><button class="main" type="submit">প্রবেশ করুন</button></form></div>
 <main>
-<button type="button" id="lockBtn">লক করুন</button>
+<button type="button" id="lockBtn">&#128274; লক করুন</button>
 <section id="vList">
   <div class="head"><h1>Booking List</h1><button class="main" id="addBtn" type="button">+ Add Booking</button></div>
   <div class="bar"><input id="q" type="text" placeholder="Search CN / Phone / Branch" aria-label="Search"><button id="refBtn" type="button" title="রিফ্রেশ" aria-label="রিফ্রেশ">&#8635;</button></div>
