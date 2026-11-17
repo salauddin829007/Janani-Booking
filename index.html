@@ -34,16 +34,25 @@ button.main:disabled{opacity:.6}
 #done button{padding:10px 16px;border-radius:6px;border:1px solid var(--navy);background:#fff;font:inherit;cursor:pointer}
 #warn{display:none;background:#fff4e0;border:1px solid #e0b660;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:14px}
 #memo{display:none}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+#lock{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+#lock form{width:100%;max-width:340px;text-align:center}
+#lock h2{margin:0 0 14px}
+#lockBtn{float:right;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline}
 @page{size:letter;margin:0}
 @media print{body{background:#fff}main{display:none}#memo{display:block;position:relative;width:612pt;height:792pt;font-family:Roboto,Arial,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}#memo div{position:absolute;white-space:nowrap;line-height:1}}
 </style>
 </head>
 <body>
+<div id="lock"><form id="lf"><h2>PIN দিন</h2><input id="pin" type="password" inputmode="numeric" autocomplete="off" aria-label="PIN"><div class="err" id="lerr" role="alert"></div><button class="main" type="submit">প্রবেশ করুন</button></form></div>
 <main>
+<button type="button" id="lockBtn">লক করুন</button>
 <h1>পার্সেল বুকিং</h1>
 <div id="warn">Google Sheet যুক্ত করা হয়নি, তাই বুকিং শুধু এই ফোনেই সেভ হচ্ছে। <code>SCRIPT_URL</code> বসালে সব বুকিং Sheet এ জমা হবে।</div>
 <div id="done" role="status">
   বুকিং হয়েছে। বুকিং নম্বর: <b class="no" id="doneNo"></b>
+  <div id="sum" style="margin-top:8px;font-size:15px"></div>
   <div class="acts"><button type="button" id="printBtn">মেমো প্রিন্ট করুন</button><button type="button" id="newBtn">নতুন বুকিং</button></div>
 </div>
 
@@ -134,6 +143,25 @@ document.querySelectorAll('input[name="pay"]').forEach(r => r.addEventListener("
 document.querySelectorAll('input[name="ccpay"]').forEach(r => r.addEventListener("change", () => { $("cc").style.display = ""; $("cc").focus(); }));
 document.addEventListener("input", e => e.target.classList.remove("bad"));
 document.addEventListener("change", e => { e.target.classList.remove("bad"); const o = e.target.closest(".opts"); if (o) o.classList.remove("bad"); });
+const lockEl = $("lock");
+function showLock(msg) { lockEl.style.display = "flex"; $("lerr").textContent = msg || ""; $("pin").value = ""; $("pin").focus(); }
+async function checkPin(p) {
+  try { const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "check", pin: p }) }); return await r.json(); }
+  catch (e) { return { ok: false, error: "NET" }; }
+}
+if (SCRIPT_URL) {
+  lockEl.style.display = "flex";
+  (async () => { const p = store.get("pin", ""); if (p && (await checkPin(p)).ok) lockEl.style.display = "none"; else showLock(); })();
+}
+$("lf").addEventListener("submit", async e => {
+  e.preventDefault(); const p = $("pin").value.trim(); if (!p) return;
+  $("lerr").textContent = "যাচাই হচ্ছে...";
+  const j = await checkPin(p);
+  if (j.ok) { store.set("pin", p); lockEl.style.display = "none"; $("sp").focus(); }
+  else $("lerr").textContent = j.error === "LOCKED" ? "অনেকবার ভুল হয়েছে, ১০ মিনিট পরে চেষ্টা করুন।" : j.error === "NET" ? "ইন্টারনেট দেখুন, আবার চেষ্টা করুন।" : "PIN ভুল।";
+});
+$("lockBtn").onclick = () => { store.set("pin", ""); if (SCRIPT_URL) showLock(); };
+document.addEventListener("wheel", () => { const a = document.activeElement; if (a && a.type === "number") a.blur(); }, { passive: true });
 let last = null;
 const val = n => (document.querySelector('input[name="' + n + '"]:checked') || {}).value || "";
 
@@ -177,8 +205,9 @@ $("f").addEventListener("submit", async e => {
   let no = "";
   try {
     if (SCRIPT_URL) {
-      const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(d) });
-      const j = await r.json(); if (!j.ok) throw new Error(j.error || "সমস্যা");
+      const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ ...d, pin: store.get("pin", "") }) });
+      const j = await r.json();
+      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার PIN দিন"); throw new Error(j.error || "সমস্যা"); }
       no = j.no;
     } else {
       const n = store.get("counter", 0) + 1; store.set("counter", n);
@@ -192,6 +221,8 @@ $("f").addEventListener("submit", async e => {
   const s = store.get("senders", {}); s[d.senderPhone] = d.senderName; store.set("senders", s);
   last = { no, when: nowStr(), ...d };
   $("doneNo").textContent = no; $("done").style.display = "block";
+  const m2 = money(d);
+  $("sum").textContent = (d.condition === "হ্যাঁ" ? "কন্ডিশন " + m2.ca + ", টোটাল কন্ডিশন " + m2.tc + " | " : "") + "ক্যারিং " + (m2.carC + m2.carT) + " | পেইড " + m2.paid + " | ডিউ " + m2.due;
   $("f").reset(); $("lot").value = 1; $("condBox").style.display = "none"; $("tk").style.display = $("cc").style.display = "none"; scrollTo(0, 0);
   $("go").disabled = false; $("go").textContent = "বুকিং সেভ করুন";
 });
