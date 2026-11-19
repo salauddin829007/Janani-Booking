@@ -110,9 +110,9 @@ table.tbl .dbtn{margin-right:4px}
   <div id="dcap"></div>
 </section>
 <section id="vDel" style="display:none">
-  <div class="head"><h1 id="delTitle">Delivery List</h1></div>
+  <div class="head"><h1 id="delTitle">Delivery List</h1><button class="main" id="newDel" type="button">+ Create Delivery</button></div>
   <div class="bar"><input id="dq" type="text" placeholder="Search CN / Phone / Name" aria-label="Search"><button id="dRef" type="button" title="রিফ্রেশ" aria-label="রিফ্রেশ" style="border:1px solid var(--line);background:#fff;border-radius:6px;padding:0 14px;font-size:20px;cursor:pointer">&#8635;</button></div>
-  <div id="dhelp" style="background:#fff8e1;border:1px solid #f0d98a;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px;line-height:1.6">কীভাবে ডেলিভারি করবেন: (১) প্রাপককে ফোন বা WhatsApp এ জানান (২) মাল দিয়ে Due টাকা বুঝে নিন (৩) <b>Delivered</b> চেপে ছবি/নোট দিয়ে নিশ্চিত করুন।</div>
+  <div id="dhelp" style="background:#fff8e1;border:1px solid #f0d98a;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px;line-height:1.6">কীভাবে ডেলিভারি করবেন: (১) প্রাপককে ফোন বা WhatsApp এ জানান (২) মাল দিয়ে Due টাকা বুঝে নিন (৩) <b>+ Create Delivery</b> এ CN দিয়ে খুঁজুন (বা সারির <b>Delivered</b> চাপুন), OTP দিয়ে নিশ্চিত করুন।</div>
   <div id="dcnt"></div>
   <div class="tw"><table class="tbl"><thead id="dhead"></thead><tbody id="dlist"></tbody></table></div>
 </section>
@@ -135,7 +135,9 @@ table.tbl .dbtn{margin-right:4px}
   <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Daily Report</h1>
   <div class="flt"><div><label for="rd">Date</label><input id="rd" type="date"></div>
     <div class="fb"><button class="dbtn ok" id="rgo" type="button">Show</button><button class="dbtn" id="rdl" type="button">Download Excel</button></div></div>
-  <div class="cards" id="rcards"></div><div id="rcap"></div>
+  <div class="tw" style="margin-bottom:14px"><table class="tbl"><tbody id="rsum"></tbody></table></div>
+  <h2 style="font-size:16px;margin:6px 0">Delivered (এই তারিখে ডেলিভারি হয়েছে)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Delivered Time</th><th>CN</th><th>Receiver</th><th>From</th><th>Charge Type</th><th>Due Collected</th></tr></thead><tbody id="rdel"></tbody></table></div>
+  <h2 style="font-size:16px;margin:6px 0">Booked (এই তারিখে বুকিং হয়েছে)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Time</th><th>CN</th><th>Receiver</th><th>To</th><th>Charge Type</th><th>Due</th><th>Status</th></tr></thead><tbody id="rbk"></tbody></table></div><div id="rcap"></div>
 </section>
 <section id="vUsr" style="display:none">
   <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Branches &amp; Login</h1>
@@ -229,7 +231,10 @@ table.tbl .dbtn{margin-right:4px}
   <div class="acts2"><button class="main" type="submit">সেভ করুন</button><button type="button" id="uCancel" class="dbtn">বাতিল</button></div>
 </form></div>
 <div id="dvm" role="dialog" aria-modal="true"><form id="dvf" novalidate>
-  <h2>ডেলিভারি নিশ্চিত করুন</h2><div id="dv_i" style="margin-bottom:10px;line-height:1.7"></div>
+  <h2>Create Delivery</h2>
+  <label for="dv_cn">CN নম্বর (যেমন JE-0001 বা শুধু 1)</label><div style="display:flex;gap:8px;margin-bottom:8px"><input id="dv_cn" type="text" autocomplete="off" autocapitalize="characters" placeholder="JE-0001"><button type="button" class="dbtn ok" id="dv_s">Search</button></div>
+  <div id="dv_i" style="margin-bottom:10px;line-height:1.7"></div>
+  <label for="dv_otp">OTP</label><input id="dv_otp" type="password" inputmode="numeric" autocomplete="off" style="margin-bottom:8px">
   <label for="dv_ph">ছবি (মাল বা প্রাপকের, ঐচ্ছিক)</label><input id="dv_ph" type="file" accept="image/*" capture="environment">
   <label for="dv_nt" style="display:block;margin-top:8px">নোট (কে মাল নিলো, ঐচ্ছিক)</label><input id="dv_nt" type="text" maxlength="200">
   <div class="err" id="dv_e" role="alert"></div>
@@ -365,7 +370,7 @@ let DMODE = "pending";
 function renderDel() {
   const done = DMODE === "done", q = $("dq").value.trim().toLowerCase();
   const rows = ALL.filter(toMe).filter(r => isDel(r) === done && (!q || [r.no, r.receiverPhone, r.receiverName, r.senderName, r.fromName].join(" ").toLowerCase().includes(q)));
-  $("dhelp").style.display = done ? "none" : ""; $("delTitle").textContent = done ? "Delivered List" : "Delivery List (Pending)";
+  $("dhelp").style.display = $("newDel").style.display = done ? "none" : ""; $("delTitle").textContent = done ? "Delivered List" : "Delivery List (Pending)";
   $("dcnt").textContent = (done ? "ডেলিভারি হয়েছে: " : "ডেলিভারি বাকি: ") + rows.length + " টি" + "";
   const hd = $("dhead"); hd.textContent = ""; const hr = document.createElement("tr");
   [done ? "Delivered Time" : "Booking Date", "CN", "Receiver", "Phone", "From", "Charge Type", "Due", "Delivery", "Action"].forEach(h => { const th = document.createElement("th"); th.textContent = h; hr.appendChild(th); });
@@ -384,14 +389,16 @@ function renderDel() {
     tr.appendChild(ac); box.appendChild(tr);
   });
 }
+let LASTERR = "";
 async function setDelivered(r, flag, btn, extra) {
+  btn = btn || {}; LASTERR = "";
   if (!extra && !confirm(r.no + (flag ? " ডেলিভারি হয়েছে বলে চিহ্নিত করবেন?" : " আবার ডেলিভারি বাকি করবেন?"))) return;
   btn.disabled = true;
   try {
     if (SCRIPT_URL) {
       const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "status", no: r.no, delivered: flag, pin: store.get("pin", ""), ...(extra || {}) }) });
       const j = await res.json();
-      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw new Error("x"); }
+      if (!j.ok) { LASTERR = j.error; if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw new Error("x"); }
       r.dtime = flag ? j.time : ""; r.proof = flag ? (j.proof || "") : ""; r.note = flag && extra ? extra.note : "";
       if (flag && j.proofErr) alert("ডেলিভারি সেভ হয়েছে, কিন্তু ছবি সেভ হয়নি। Apps Script এ Drive এর অনুমতি দিন (Deploy এর পর একবার Run করুন)।");
     } else {
@@ -578,17 +585,33 @@ $("uq").addEventListener("input", renderUsr); $("eCancel").onclick = () => { $("
 
 // ----- ডেলিভারি নিশ্চিত (ছবি + নোট) -----
 let DVR = null, DVB = null;
-function openDv(r, bt) {
-  DVR = r; DVB = bt; const m = money(r);
-  $("dv_i").textContent = ""; [["CN", r.no], ["প্রাপক", r.receiverName + " (" + r.receiverPhone + ")"], ["নিতে হবে", "\u09F3" + m.due + " (" + r.pay + ")"]].forEach(([k, v]) => { const d = document.createElement("div"); d.textContent = k + ": " + v; $("dv_i").appendChild(d); });
-  $("dv_ph").value = ""; $("dv_nt").value = ""; $("dv_e").textContent = ""; $("dv_ok").disabled = false; $("dvm").style.display = "flex";
+function showDvInfo(r) {
+  const m = money(r); $("dv_i").textContent = "";
+  [["CN", r.no], ["প্রাপক", r.receiverName + " (" + r.receiverPhone + ")"], ["কোথা থেকে", r.fromName || "Sylhet"], ["নিতে হবে", "\u09F3" + m.due + " (" + r.pay + ")"], ["ডেলিভারি", r.delivery]].forEach(([k, v]) => { const d = document.createElement("div"); d.textContent = k + ": " + v; $("dv_i").appendChild(d); });
 }
+function dvSearch() {
+  let q = $("dv_cn").value.trim().toUpperCase(); if (/^\d+$/.test(q)) q = "JE-" + q.padStart(4, "0");
+  DVR = null; $("dv_ok").disabled = true; $("dv_i").textContent = ""; $("dv_e").textContent = ""; if (!q) return;
+  const r = ALL.filter(toMe).find(x => x.no.toUpperCase() === q);
+  if (!r) { $("dv_e").textContent = "এই CN আপনার শাখার ডেলিভারি স্টকে পাওয়া যায়নি।"; return; }
+  if (isDel(r)) { $("dv_e").textContent = "এই মাল আগেই ডেলিভারি হয়েছে (" + r.dtime + ")।"; return; }
+  DVR = r; showDvInfo(r); $("dv_ok").disabled = false; $("dv_otp").focus();
+}
+function openDv(r, bt) {
+  DVR = r || null; DVB = bt || null; $("dv_cn").value = r ? r.no : ""; $("dv_i").textContent = ""; if (r) showDvInfo(r);
+  $("dv_ph").value = ""; $("dv_nt").value = ""; $("dv_otp").value = ""; $("dv_e").textContent = ""; $("dv_ok").disabled = !r; $("dvm").style.display = "flex";
+  (r ? $("dv_otp") : $("dv_cn")).focus();
+}
+$("newDel").onclick = () => openDv(null, null); $("dv_s").onclick = dvSearch;
+$("dv_cn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); dvSearch(); } });
 const shrink = f => new Promise((ok, no) => { const im = new Image(), u = URL.createObjectURL(f); im.onload = () => { const k = Math.min(1, 900 / Math.max(im.width, im.height)), cv = document.createElement("canvas"); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k); cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u); ok(cv.toDataURL("image/jpeg", 0.7)); }; im.onerror = () => no(new Error("img")); im.src = u; });
 $("dvf").addEventListener("submit", async e => {
-  e.preventDefault(); const f = $("dv_ph").files[0]; $("dv_ok").disabled = true; $("dv_e").textContent = "সেভ হচ্ছে...";
+  e.preventDefault(); if (!DVR) { $("dv_e").textContent = "আগে CN দিয়ে মাল খুঁজুন।"; return; }
+  const otp = $("dv_otp").value.trim(); if (!otp) { $("dv_e").textContent = "OTP দিন।"; return; }
+  const f = $("dv_ph").files[0]; $("dv_ok").disabled = true; $("dv_e").textContent = "সেভ হচ্ছে...";
   let photo = ""; try { if (f) photo = await shrink(f); } catch (x) { $("dv_e").textContent = "ছবি পড়া যায়নি, অন্য ছবি দিন।"; $("dv_ok").disabled = false; return; }
-  const ok = await setDelivered(DVR, true, DVB, { photo, note: $("dv_nt").value.trim() });
-  if (ok) $("dvm").style.display = "none"; else { $("dv_e").textContent = "সেভ হয়নি, আবার চেষ্টা করুন।"; $("dv_ok").disabled = false; DVB.disabled = false; }
+  const ok = await setDelivered(DVR, true, DVB, { photo, note: $("dv_nt").value.trim(), otp });
+  if (ok) $("dvm").style.display = "none"; else { $("dv_e").textContent = LASTERR === "OTP" ? "OTP ভুল, আবার দিন।" : "সেভ হয়নি, আবার চেষ্টা করুন।"; $("dv_ok").disabled = false; if (DVB) DVB.disabled = false; }
 });
 $("dvC").onclick = () => { $("dvm").style.display = "none"; };
 // ----- Excel (CSV) ডাউনলোড -----
@@ -616,9 +639,15 @@ function renderRep() {
   rows.forEach(r => { const m = money(r); paid += m.paid; due += m.due; ca += m.ca; lot += +r.lot || 0; if (r.delivery === "O/D") od++; else if (r.delivery === "H/D") hd++; });
   const dn = ALL.filter(toMe).filter(r => isDel(r) && dkey(r.dtime) === k), col = dn.reduce((a, r) => a + money(r).due, 0);
   REP = [["Date", k], ["Branch", ME.name], ["Bookings", rows.length], ["Paid (Cash)", paid], ["Due (To Pay)", due], ["Condition", ca], ["Parcel (Lot)", lot], ["O/D", od], ["H/D", hd], ["Delivered here", dn.length], ["Collected at delivery", col], ["Cash received (Paid + Delivery)", paid + col]];
-  const box = $("rcards"); box.textContent = "";
-  REP.slice(2).forEach(([l, v]) => box.appendChild(mkCard(l, /Paid|Due|Condition|Collected|Cash/.test(l) ? "\u09F3" + v : v)));
-  $("rcap").textContent = "সর্বশেষ " + ALL.filter(mine).length + " টি বুকিং এর ডেটা থেকে হিসাব। Cash received = বুকিং এর সময় পাওয়া Paid + ডেলিভারির সময় নেওয়া Due।";
+  const tk = "\u09F3", fill = (id, list) => { const b = $(id); b.textContent = ""; list.forEach(c => b.appendChild(mkTr(c))); };
+  fill("rsum", REP.slice(2).map(([l, v]) => [l, /Paid|Due|Condition|Collected|Cash/.test(l) ? tk + v : v]));
+  fill("rdel", dn.map(r => [r.dtime, [r.no, "pill cn"], r.receiverName + " (" + r.receiverPhone + ")", r.fromName, [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], tk + money(r).due]));
+  fill("rbk", rows.map(r => [r.when, [r.no, "pill cn"], r.receiverName + " (" + r.receiverPhone + ")", short(r.branch), [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], tk + money(r).due, isDel(r) ? "Delivered" : "Booked"]));
+  REP.push([], ["Delivered", "CN", "Receiver", "Phone", "From", "Charge Type", "Due Collected"]);
+  dn.forEach(r => REP.push([r.dtime, r.no, r.receiverName, r.receiverPhone, r.fromName, r.pay, money(r).due]));
+  REP.push([], ["Booked", "CN", "Receiver", "Phone", "To", "Charge Type", "Due", "Status"]);
+  rows.forEach(r => REP.push([r.when, r.no, r.receiverName, r.receiverPhone, short(r.branch), r.pay, money(r).due, isDel(r) ? "Delivered" : "Booked"]));
+  $("rcap").textContent = "সর্বশেষ " + ALL.filter(mine).length + " টি বুকিং এর ডেটা থেকে হিসাব। Cash received = বুকিং এর সময় পাওয়া Paid + ডেলিভারির সময় নেওয়া Due। (ডেলিভারি টেবিলে শুধু আপনার শাখায় আসা মাল)";
 }
 $("nvRep").onclick = goRep; $("rgo").onclick = renderRep; $("rd").addEventListener("change", renderRep); $("rdl").onclick = () => dl("daily-" + ME.name + "-" + $("rd").value + ".csv", REP);
 // ----- মাল ট্র্যাকিং (লগইন ছাড়া) -----
