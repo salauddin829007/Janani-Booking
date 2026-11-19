@@ -31,7 +31,7 @@ form{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20p
 .r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:1fr 2fr 1fr}
 @media(max-width:620px){.r2,.r3{grid-template-columns:1fr}}
 label{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
-input[type=text],input[type=tel],input[type=number],input[type=password],select{width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fafafa;color:var(--ink)}
+input[type=text],input[type=tel],input[type=number],input[type=password],input[type=date],select{width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fafafa;color:var(--ink)}
 input:focus,select:focus,button:focus-visible{outline:2px solid #3b6fd4;outline-offset:1px}
 .opts{display:flex;gap:22px;flex-wrap:wrap;padding:10px 0}
 .opts label{display:flex;align-items:center;gap:8px;margin:0;color:var(--ink);cursor:pointer}
@@ -55,23 +55,31 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 #lock form{width:100%;max-width:340px;text-align:center;background:#fff;border-radius:14px;padding:26px 22px;box-shadow:0 10px 30px rgba(0,0,0,.35);border-top:6px solid #e8a317}
 #lock h2{margin:0 0 4px;color:var(--navy)}
 #lock p{margin:0 0 16px;color:var(--muted);font-size:14px}
-#lock input{text-align:center;font-size:22px;letter-spacing:6px;margin-bottom:6px}
+#lock input{text-align:center;font-size:18px;letter-spacing:1px;margin-bottom:8px}
 #vList .bar{display:flex;gap:10px;margin-bottom:10px}
 #vList .bar input{flex:1;min-width:0}
 #vList .bar button{width:auto;padding:12px 16px;white-space:nowrap}
-#cnt{font-size:14px;color:var(--muted);margin:4px 0 10px}
+#dcnt,#cnt{font-size:14px;color:var(--muted);margin:4px 0 10px}
 .head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 12px}
 #vList h1{text-align:left;margin:0;font-size:22px}
 #vList .head button{width:auto;padding:12px 16px;white-space:nowrap}
 #refBtn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:0 14px;font-size:20px;cursor:pointer}
 .tw{background:#fff;border:1px solid var(--line);border-radius:10px;overflow-x:auto}
-#tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
-#tbl th{background:#222f46;color:#fff;text-align:left;padding:12px 10px;white-space:nowrap;font-weight:600}
-#tbl td{padding:9px 10px;border-bottom:1px solid #e6e9f0;white-space:nowrap}
-#tbl tbody tr:nth-child(even) td{background:#f7f8fb}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+table.tbl th{background:#222f46;color:#fff;text-align:left;padding:12px 10px;white-space:nowrap;font-weight:600}
+table.tbl td{padding:9px 10px;border-bottom:1px solid #e6e9f0;white-space:nowrap}
+table.tbl tbody tr:nth-child(even) td{background:#f7f8fb}
 .pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600}
 .cn{background:#e4e8f6;color:#2b3a8c}.cash,.topay{background:#fdeede;color:#c25a00}.svc{background:#e0f3e6;color:#1b7a43}
 .chg{color:#1b7a43;font-weight:700}
+.flt{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px}.flt>div{min-width:140px;flex:1}.flt .fb{display:flex;gap:8px;flex:none}
+#edm,#udm{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:8;padding:12px}
+#edm form,#udm form{background:#fff;border-radius:10px;padding:18px;max-width:640px;width:100%;max-height:92vh;overflow:auto}
+#edm h2,#udm h2{margin:0 0 12px;font-size:18px}.eg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+@media(max-width:560px){.eg{grid-template-columns:1fr}}
+.acts2{display:flex;gap:10px}.acts2 .main{flex:1}
+table.tbl .dbtn{margin-right:4px}
+.dbtn{padding:6px 12px;border:1px solid var(--navy);border-radius:6px;background:#fff;font:inherit;font-size:13px;cursor:pointer}.dbtn.ok{background:var(--navy);color:#fff}
 .ico{border:0;background:none;cursor:pointer;padding:4px;color:#444}.ico:hover{color:var(--navy)}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;justify-content:space-between}
 .card b{font-size:18px}.card small{display:block;color:var(--muted);font-size:14px}
@@ -82,12 +90,16 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 </style>
 </head>
 <body>
-<div id="lock"><form id="lf"><h2>জননী এক্সপ্রেস</h2><p>PIN দিয়ে প্রবেশ করুন</p><input id="pin" type="password" inputmode="numeric" autocomplete="off" aria-label="PIN"><div class="err" id="lerr" role="alert"></div><button class="main" type="submit">প্রবেশ করুন</button></form></div>
+<div id="lock"><form id="lf"><h2>জননী এক্সপ্রেস</h2><p>ID ও Password দিয়ে প্রবেশ করুন</p><input id="uid" type="text" autocomplete="off" autocapitalize="off" placeholder="ID" aria-label="ID"><input id="pin" type="password" autocomplete="off" placeholder="Password" aria-label="Password"><div class="err" id="lerr" role="alert"></div><button class="main" type="submit">প্রবেশ করুন</button></form></div>
 <div class="app">
-<nav id="side"><div class="brand">জননী এক্সপ্রেস</div>
+<nav id="side"><div class="brand">জননী এক্সপ্রেস</div><div id="meName" style="padding:0 10px 10px;font-size:13px;color:var(--muted)"></div>
 <button class="nv" id="nvDash" type="button">Dashboard</button>
 <button class="nv" id="nvList" type="button">Booking List</button>
 <button class="nv" id="nvAdd" type="button">+ Add Booking</button>
+<button class="nv" id="nvDel" type="button">Delivery List</button>
+<button class="nv" id="nvDone" type="button">Delivered List</button>
+<button class="nv" id="nvAdm" type="button" style="display:none">Admin Panel</button>
+<button class="nv" id="nvUsr" type="button" style="display:none">Branches &amp; Login</button>
 <button class="nv" id="lockBtn" type="button" title="লক করুন" aria-label="লক করুন">&#128274; লক</button></nav>
 <main>
 <section id="vDash" style="display:none">
@@ -96,11 +108,38 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   <div class="panel"><h2>Booking (Last 7 Days)</h2><div id="chart"></div></div>
   <div id="dcap"></div>
 </section>
+<section id="vDel" style="display:none">
+  <div class="head"><h1 id="delTitle">Delivery List</h1></div>
+  <div class="bar"><input id="dq" type="text" placeholder="Search CN / Phone / Name" aria-label="Search"><button id="dRef" type="button" title="রিফ্রেশ" aria-label="রিফ্রেশ" style="border:1px solid var(--line);background:#fff;border-radius:6px;padding:0 14px;font-size:20px;cursor:pointer">&#8635;</button></div>
+  <div id="dcnt"></div>
+  <div class="tw"><table class="tbl"><thead id="dhead"></thead><tbody id="dlist"></tbody></table></div>
+</section>
+<section id="vAdm" style="display:none">
+  <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Admin Panel</h1>
+  <div class="flt">
+    <div><label for="fd1">From</label><input id="fd1" type="date"></div>
+    <div><label for="fd2">To</label><input id="fd2" type="date"></div>
+    <div><label for="ffrom">Booking Branch</label><select id="ffrom"><option value="">All</option></select></div>
+    <div><label for="fto">Destination</label><select id="fto"><option value="">All</option></select></div>
+    <div><label for="fq">Search</label><input id="fq" type="text" placeholder="CN / Phone / Name"></div>
+    <div class="fb"><button class="dbtn ok" id="fgo" type="button">Search</button><button class="dbtn" id="ftd" type="button">Today</button><button class="dbtn" id="fall" type="button">All</button></div>
+  </div>
+  <div id="acnt"></div>
+  <div class="cards" id="acards"></div>
+  <div class="panel" style="margin-bottom:14px"><h2>Branch wise</h2><div class="tw"><table class="tbl"><thead><tr><th>Branch</th><th>Bookings</th><th>Paid (Cash)</th><th>Due (To Pay)</th><th>Condition</th><th>Lot</th><th>Delivered</th></tr></thead><tbody id="asum"></tbody></table></div></div>
+  <div class="tw"><table class="tbl"><thead><tr><th>Date</th><th>CN</th><th>From</th><th>To</th><th>Receiver</th><th>Charge Type</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead><tbody id="alist"></tbody></table></div>
+</section>
+<section id="vUsr" style="display:none">
+  <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Branches &amp; Login</h1>
+  <div class="bar"><input id="uq" type="text" placeholder="Search branch / code" aria-label="Search"></div>
+  <div id="ucnt"></div>
+  <div class="tw"><table class="tbl"><thead><tr><th>Code</th><th>Branch</th><th>Login ID</th><th>Password</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ulist"></tbody></table></div>
+</section>
 <section id="vList" style="display:none">
   <div class="head"><h1>Booking List</h1><button class="main" id="addBtn" type="button">+ Add Booking</button></div>
   <div class="bar"><input id="q" type="text" placeholder="Search CN / Phone / Branch" aria-label="Search"><button id="refBtn" type="button" title="রিফ্রেশ" aria-label="রিফ্রেশ">&#8635;</button></div>
   <div id="cnt"></div>
-  <div class="tw"><table id="tbl"><thead><tr><th>Booking Date</th><th>CN</th><th>Destination</th><th>Charge Type</th><th>Charge</th><th>Delivery</th><th>Actions</th></tr></thead><tbody id="list"></tbody></table></div>
+  <div class="tw"><table id="tbl" class="tbl"><thead><tr><th>Booking Date</th><th>CN</th><th>Destination</th><th>Charge Type</th><th>Charge</th><th>Delivery</th><th>Status</th><th>Actions</th></tr></thead><tbody id="list"></tbody></table></div>
 </section>
 <section id="vForm" style="display:none">
 <button type="button" id="backBtn" class="lnk">← তালিকায় ফিরুন</button>
@@ -150,13 +189,43 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 </main>
 </div>
 
+<div id="edm" role="dialog" aria-modal="true"><form id="ef" novalidate>
+  <h2 id="etitle">Edit</h2>
+  <div class="eg">
+    <div><label for="e_sp">প্রেরকের ফোন</label><input id="e_sp" type="tel" maxlength="11"></div>
+    <div><label for="e_sn">প্রেরকের নাম</label><input id="e_sn" type="text"></div>
+    <div><label for="e_rp">প্রাপকের ফোন</label><input id="e_rp" type="tel" maxlength="11"></div>
+    <div><label for="e_rn">প্রাপকের নাম</label><input id="e_rn" type="text"></div>
+    <div><label for="e_lot">লট</label><input id="e_lot" type="number" min="1"></div>
+    <div><label for="e_desc">বিবরণ</label><input id="e_desc" type="text"></div>
+    <div><label for="e_br">গন্তব্য শাখা</label><select id="e_br"></select></div>
+    <div><label for="e_dv">ডেলিভারি</label><select id="e_dv"><option>O/D</option><option>H/D</option></select></div>
+    <div><label for="e_pay">পেমেন্ট</label><select id="e_pay"><option>Cash</option><option>To Pay</option></select></div>
+    <div><label for="e_tk">ক্যারিং চার্জ (টাকা)</label><input id="e_tk" type="number" min="0"></div>
+    <div class="opts"><label><input type="checkbox" id="e_cond"> কন্ডিশন</label></div><div></div>
+    <div><label for="e_ca">কন্ডিশন অ্যামাউন্ট</label><input id="e_ca" type="number" min="0"></div>
+    <div><label for="e_cc">কন্ডিশন চার্জ</label><input id="e_cc" type="number" min="0"></div>
+    <div><label for="e_ccp">কন্ডিশন চার্জ ধরন</label><select id="e_ccp"><option value="">-</option><option>Cash</option><option>To Pay</option></select></div>
+  </div>
+  <div class="err" id="e_err" role="alert"></div>
+  <div class="acts2"><button class="main" type="submit">সেভ করুন</button><button type="button" id="eCancel" class="dbtn">বাতিল</button></div>
+</form></div>
+<div id="udm" role="dialog" aria-modal="true"><form id="uf" novalidate>
+  <h2 id="utitle">Edit</h2>
+  <div class="eg">
+    <div><label for="u_id">Login ID (৩-২০, ইংরেজি/সংখ্যা)</label><input id="u_id" type="text" autocomplete="off" autocapitalize="off"></div>
+    <div><label for="u_nm">শাখার নাম</label><input id="u_nm" type="text"></div>
+    <div><label for="u_pw">Password (৪-২০, ফাঁকা রাখলে নিজে থেকে হবে)</label><input id="u_pw" type="text" autocomplete="off"></div>
+  </div>
+  <div class="err" id="u_err" role="alert"></div>
+  <div class="acts2"><button class="main" type="submit">সেভ করুন</button><button type="button" id="uCancel" class="dbtn">বাতিল</button></div>
+</form></div>
 <div id="memo"></div>
 
 <script>
 // Google Apps Script Web App URL এখানে বসান (না বসালে বুকিং শুধু এই ফোনে সেভ হবে)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWFvXBKo_LFclHR3h16O_hi1nkyaw2givOa-RvqIO_K5KYWXZg6KWakFjk395Yit1iKg/exec";
 // মেমোতে যা ছাপা হবে
-const BRANCH = "Sylhet";                  // বুকিং শাখার নাম
 const PRINT_DX = 0, PRINT_DY = -0.4;         // প্রিন্ট সরাতে হলে (pt): DX ডানে, DY নিচে
 
 const D = {
@@ -201,9 +270,13 @@ document.querySelectorAll('input[name="pay"]').forEach(r => r.addEventListener("
 document.querySelectorAll('input[name="ccpay"]').forEach(r => r.addEventListener("change", () => { $("cc").style.display = ""; $("cc").focus(); }));
 document.addEventListener("input", e => e.target.classList.remove("bad"));
 document.addEventListener("change", e => { e.target.classList.remove("bad"); const o = e.target.closest(".opts"); if (o) o.classList.remove("bad"); });
-const FIELDS = ["no","when","senderPhone","senderName","receiverPhone","receiverName","lot","desc","w","branch","pay","taka","condition","delivery","status","condAmt","condChg","vat","paid","due","ccPay"];
+let ME = store.get("me", null) || { code: "129", name: "Sylhet" };   // কোন শাখার PIN দিয়ে ঢুকেছে (সার্ভার জানায়)
+const FIELDS = ["no","when","senderPhone","senderName","receiverPhone","receiverName","lot","desc","w","branch","pay","taka","condition","delivery","status","condAmt","condChg","vat","paid","due","ccPay","dtime","fromName","fromCode"];
 let ALL = [], TOTAL = 0;
-const toRec = v => { const o = {}; FIELDS.forEach((k, i) => o[k] = v[i] || ""); return o; };
+const toRec = v => { const o = {}; FIELDS.forEach((k, i) => o[k] = String(v[i] || "").replace(/^'/, "")); return o; };
+const destCode = r => { const m = /\[(\d+)\]\s*$/.exec(String(r.branch)); return m ? m[1] : ""; };
+const mine = r => (r.fromCode || "129") === ME.code;   // আমার শাখার বুকিং
+const toMe = r => destCode(r) === ME.code;              // আমার শাখায় আসা মাল
 const short = b => String(b).replace(/\s*\([^()]*\)\s*\[\d+\]$/, "");
 const p2 = x => String(x).padStart(2, "0");
 const fmtKey = d => p2(d.getDate()) + "-" + p2(d.getMonth() + 1) + "-" + d.getFullYear();
@@ -214,7 +287,7 @@ async function loadAll() {
     if (SCRIPT_URL) {
       const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "list", pin: store.get("pin", "") }) });
       const j = await r.json();
-      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার PIN দিন"); return false; }
+      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); return false; }
       ALL = j.rows.map(toRec); TOTAL = +j.total || 0;
     } else { ALL = store.get("bookings", []).slice().reverse(); TOTAL = ALL.length; }
     return true;
@@ -226,25 +299,27 @@ async function loadList() {
 }
 function renderList() {
   const q = $("q").value.trim().toLowerCase(), box = $("list"); box.textContent = "";
-  const rows = ALL.filter(r => !q || [r.no, r.senderPhone, r.receiverPhone, r.senderName, r.receiverName, r.branch].join(" ").toLowerCase().includes(q));
-  $("cnt").textContent = "মোট " + TOTAL + " টি বুকিং" + (ALL.length < TOTAL ? " (সর্বশেষ " + ALL.length + " টি দেখানো হচ্ছে)" : "") + (q ? " | পাওয়া গেছে " + rows.length : "");
+  const own = ALL.filter(mine), rows = own.filter(r => !q || [r.no, r.senderPhone, r.receiverPhone, r.senderName, r.receiverName, r.branch].join(" ").toLowerCase().includes(q));
+  $("cnt").textContent = "মোট " + TOTAL + " টি বুকিং" + (own.length < TOTAL ? " (সর্বশেষ " + own.length + " টি দেখানো হচ্ছে)" : "") + (q ? " | পাওয়া গেছে " + rows.length : "");
   const ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 8H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3zm-3 11H8v-5h8v5zm3-7a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM18 3H6v4h12V3z"/></svg>';
   rows.forEach(r => {
     const m = money(r), tr = document.createElement("tr");
     const td = (txt, cls) => { const c = document.createElement("td"); if (cls) { const b = document.createElement("span"); b.className = cls; b.textContent = txt; c.appendChild(b); } else c.textContent = txt; tr.appendChild(c); return c; };
     td(r.when); td(r.no, "pill cn"); td(short(r.branch));
-    td(r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")); td("\u09F3" + m.due).className = "chg"; td(r.delivery, "pill svc");
+    td(r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")); td("\u09F3" + m.due).className = "chg"; td(r.delivery, "pill svc"); td(isDel(r) ? "Delivered" : "Booked", "pill " + (isDel(r) ? "svc" : "cash"));
     const ac = document.createElement("td"), pb = document.createElement("button");
     pb.type = "button"; pb.className = "ico"; pb.title = "প্রিন্ট"; pb.setAttribute("aria-label", "প্রিন্ট"); pb.innerHTML = ICON; pb.onclick = () => printMemo(r);
     ac.appendChild(pb); tr.appendChild(ac); box.appendChild(tr);
   });
 }
 function renderDash() {
-  const tk = fmtKey(new Date()), rows = ALL.filter(r => dkey(r.when) === tk);
+  const tk = fmtKey(new Date()), own = ALL.filter(mine), inc = ALL.filter(toMe), rows = own.filter(r => dkey(r.when) === tk);
   let paid = 0, due = 0, ca = 0, lot = 0, od = 0, hd = 0;
   rows.forEach(r => { const m = money(r); paid += m.paid; due += m.due; ca += m.ca; lot += +r.lot || 0; if (r.delivery === "O/D") od++; else if (r.delivery === "H/D") hd++; });
+  const pend = inc.filter(r => !isDel(r)), dn = inc.filter(isDel);
   const items = [["Today Booking", rows.length], ["Total Booking", TOTAL], ["Today Paid (Cash)", "\u09F3" + paid], ["Today Due (To Pay)", "\u09F3" + due],
-    ["Today Condition", "\u09F3" + ca], ["Today Parcel (Lot)", lot], ["Today O/D", od], ["Today H/D", hd]];
+    ["Today Condition", "\u09F3" + ca], ["Today Parcel (Lot)", lot], ["Today O/D", od], ["Today H/D", hd],
+    ["Pending Delivery", pend.length], ["Delivered Today", dn.filter(r => dkey(r.dtime) === tk).length], ["Pending Due (To Pay)", "\u09F3" + pend.reduce((a, r) => a + money(r).due, 0)], ["Total Delivered", dn.length]];
   const box = $("cards"); box.textContent = "";
   items.forEach(([l, v]) => {
     const c = document.createElement("div"), ic = document.createElement("i"), t = document.createElement("div"), b = document.createElement("b"), sp = document.createElement("span");
@@ -252,7 +327,7 @@ function renderDash() {
     b.textContent = v; sp.textContent = l; t.append(b, sp); c.append(ic, t); box.appendChild(c);
   });
   const days = [], counts = [];
-  for (let i = 6; i >= 0; i--) { const d = new Date(Date.now() - i * 864e5); days.push(d); counts.push(ALL.filter(r => dkey(r.when) === fmtKey(d)).length); }
+  for (let i = 6; i >= 0; i--) { const d = new Date(Date.now() - i * 864e5); days.push(d); counts.push(own.filter(r => dkey(r.when) === fmtKey(d)).length); }
   const top = Math.max(1, Math.ceil(Math.max(...counts) / 4)) * 4, W = Math.max(300, $("chart").clientWidth || 700), H = 230, L = 36, R = 18, T = 16, B = 34;
   const x = i => L + i * (W - L - R) / 6, y = v => T + (H - T - B) * (1 - v / top);
   let g = "";
@@ -260,41 +335,238 @@ function renderDash() {
   const pts = counts.map((v, i) => x(i) + "," + y(v)).join(" ");
   let lab = ""; days.forEach((d, i) => { lab += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#8a93a6">${p2(d.getDate())}/${p2(d.getMonth() + 1)}</text><text x="${x(i)}" y="${y(counts[i]) - 9}" text-anchor="middle" font-size="11" fill="#1c2433">${counts[i]}</text>`; });
   $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="গত ৭ দিনের বুকিং">${g}<polyline points="${pts}" fill="none" stroke="#e53935" stroke-width="3" stroke-linejoin="round"/>${counts.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="#e53935"/>`).join("")}${lab}</svg>`;
-  $("dcap").textContent = ALL.length < TOTAL ? "সর্বশেষ " + ALL.length + " টি বুকিং এর ডেটা থেকে হিসাব করা হয়েছে।" : "";
+  $("dcap").textContent = own.length < TOTAL ? "সর্বশেষ " + own.length + " টি বুকিং এর ডেটা থেকে হিসাব করা হয়েছে।" : "";
 }
-const VIEWS = { dash: "vDash", list: "vList", form: "vForm" };
+const DELIVERED = "মাল ডেলিভারি হয়েছে", PENDING = "বুকিং হয়েছে";
+const isDel = r => r.status === DELIVERED;
+let DMODE = "pending";
+function renderDel() {
+  const done = DMODE === "done", q = $("dq").value.trim().toLowerCase();
+  const rows = ALL.filter(toMe).filter(r => isDel(r) === done && (!q || [r.no, r.receiverPhone, r.receiverName, r.senderName, r.fromName].join(" ").toLowerCase().includes(q)));
+  $("delTitle").textContent = done ? "Delivered List" : "Delivery List (Pending)";
+  $("dcnt").textContent = (done ? "ডেলিভারি হয়েছে: " : "ডেলিভারি বাকি: ") + rows.length + " টি" + "";
+  const hd = $("dhead"); hd.textContent = ""; const hr = document.createElement("tr");
+  [done ? "Delivered Time" : "Booking Date", "CN", "Receiver", "Phone", "From", "Charge Type", "Due", "Delivery", "Action"].forEach(h => { const th = document.createElement("th"); th.textContent = h; hr.appendChild(th); });
+  hd.appendChild(hr);
+  const box = $("dlist"); box.textContent = "";
+  rows.forEach(r => {
+    const m = money(r), tr = document.createElement("tr");
+    const td = (txt, cls) => { const c = document.createElement("td"); if (cls) { const b = document.createElement("span"); b.className = cls; b.textContent = txt; c.appendChild(b); } else c.textContent = txt; tr.appendChild(c); return c; };
+    td(done ? r.dtime : r.when); td(r.no, "pill cn"); td(r.receiverName); td(r.receiverPhone); td(r.fromName || "Sylhet");
+    td(r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")); td("\u09F3" + m.due).className = "chg"; td(r.delivery, "pill svc");
+    const ac = document.createElement("td"), bt = document.createElement("button");
+    bt.type = "button"; bt.className = "dbtn" + (done ? "" : " ok"); bt.textContent = done ? "Undo" : "Delivered";
+    bt.onclick = () => setDelivered(r, !done, bt); ac.appendChild(bt); tr.appendChild(ac); box.appendChild(tr);
+  });
+}
+async function setDelivered(r, flag, btn) {
+  if (!confirm(r.no + (flag ? " ডেলিভারি হয়েছে বলে চিহ্নিত করবেন?" : " আবার ডেলিভারি বাকি করবেন?"))) return;
+  btn.disabled = true;
+  try {
+    if (SCRIPT_URL) {
+      const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "status", no: r.no, delivered: flag, pin: store.get("pin", "") }) });
+      const j = await res.json();
+      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw new Error("x"); }
+      r.dtime = flag ? j.time : "";
+    } else {
+      r.dtime = flag ? nowStr() : ""; const all = store.get("bookings", []), x = all.find(b => b.no === r.no);
+      if (x) { x.status = flag ? DELIVERED : PENDING; x.dtime = r.dtime; store.set("bookings", all); }
+    }
+    r.status = flag ? DELIVERED : PENDING; renderDel();
+  } catch (e) { btn.disabled = false; $("dcnt").textContent = "সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।"; }
+}
+async function goDel(mode) {
+  DMODE = mode; show("del", mode === "done" ? "nvDone" : "nvDel"); $("dcnt").textContent = "লোড হচ্ছে..."; $("dlist").textContent = "";
+  if (await loadAll()) renderDel(); else $("dcnt").textContent = "তালিকা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+}
+const VIEWS = { dash: "vDash", list: "vList", form: "vForm", del: "vDel", adm: "vAdm", usr: "vUsr" };
 function show(v, nav) {
+  $("meName").textContent = ME.role === "admin" ? "অ্যাডমিন" : ME.name ? "শাখা: " + ME.name : ""; applyRole();
   for (const k in VIEWS) $(VIEWS[k]).style.display = k === v ? "" : "none";
-  ["nvDash", "nvList", "nvAdd"].forEach(i => $(i).classList.toggle("on", i === nav)); scrollTo(0, 0);
+  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvAdm", "nvUsr"].forEach(i => $(i).classList.toggle("on", i === nav)); scrollTo(0, 0);
 }
 async function goDash() {
-  show("dash", "nvDash"); $("dtitle").textContent = "Booking " + BRANCH; $("dcap").textContent = "লোড হচ্ছে...";
+  show("dash", "nvDash"); $("dtitle").textContent = "Booking " + ME.name; $("dcap").textContent = "লোড হচ্ছে...";
   if (await loadAll()) renderDash(); else $("dcap").textContent = "ডেটা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
 }
 function goList() { show("list", "nvList"); loadList(); }
 function goForm() { show("form", "nvAdd"); $("done").style.display = "none"; $("sp").focus(); }
 $("addBtn").onclick = goForm; $("refBtn").onclick = loadList; $("backBtn").onclick = goList; $("toList").onclick = goList; $("q").addEventListener("input", renderList);
+$("nvDel").onclick = () => goDel("pending"); $("nvDone").onclick = () => goDel("done"); $("dq").addEventListener("input", renderDel); $("dRef").onclick = () => goDel(DMODE);
 $("nvDash").onclick = goDash; $("nvList").onclick = goList; $("nvAdd").onclick = goForm;
 $("ca").addEventListener("input", () => { const a = +$("ca").value || 0; $("cc").value = a > 0 ? Math.ceil(a / 1000) * 10 : 0; });  // হাজারে বা তার অংশে ১০ টাকা, সর্বনিম্ন ১০
 
+// ================= অ্যাডমিন প্যানেল =================
+const ST = r => r.status === DELIVERED ? ["Delivered", "pill svc"] : r.status === "বাতিল" ? ["Cancelled", "pill topay"] : ["Booked", "pill cash"];
+const ERRS = { BADPIN: "Password ৪ থেকে ২০ অক্ষরের হতে হবে (ফাঁকা থাকবে না)।", BADID: "ID ৩ থেকে ২০ অক্ষরের হতে হবে (ইংরেজি অক্ষর, সংখ্যা, _ . -)।", DUPID: "এই ID অন্য শাখার আছে, অন্য ID দিন।", BADNAME: "শাখার নাম লিখুন।", FORBIDDEN: "এই কাজের অনুমতি নেই।", NOTFOUND: "পাওয়া যায়নি।", NET: "ইন্টারনেট দেখে আবার চেষ্টা করুন।" };
+async function api(body) {
+  try {
+    const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ ...body, pin: store.get("pin", "") }) });
+    const j = await r.json();
+    if (!j.ok && ["PIN", "LOCKED", "DISABLED"].includes(j.error)) showLock("আবার ID ও Password দিন");
+    return j;
+  } catch (e) { return { ok: false, error: "NET" }; }
+}
+function home() { if (ME.role === "admin") goAdm(); else goDash(); }
+function applyRole() {
+  const a = ME.role === "admin";
+  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone"].forEach(i => $(i).style.display = a ? "none" : "");
+  ["nvAdm", "nvUsr"].forEach(i => $(i).style.display = a ? "" : "none");
+}
+const tdy = () => { const t = new Date(); return t.getFullYear() + "-" + p2(t.getMonth() + 1) + "-" + p2(t.getDate()); };
+const mkCard = (l, v) => {
+  const c = document.createElement("div"), ic = document.createElement("i"), t = document.createElement("div"), b = document.createElement("b"), sp = document.createElement("span");
+  c.className = "cd"; ic.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>';
+  b.textContent = v; sp.textContent = l; t.append(b, sp); c.append(ic, t); return c;
+};
+const mkTr = (cells) => {
+  const tr = document.createElement("tr");
+  cells.forEach(x => { const td = document.createElement("td"); if (x instanceof Node) td.appendChild(x); else if (Array.isArray(x)) { const sp = document.createElement("span"); sp.className = x[1]; sp.textContent = x[0]; td.appendChild(sp); } else td.textContent = x; tr.appendChild(td); });
+  return tr;
+};
+const mkBtn = (txt, cls, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = txt; b.onclick = fn; return b; };
+function fillFilter(sel) {
+  for (const [dv, list] of Object.entries(D)) {
+    const g = document.createElement("optgroup"); g.label = dv;
+    list.split(";").forEach(x => { const i = x.indexOf(" "), o = document.createElement("option"); o.value = x.slice(0, i); o.textContent = x.slice(i + 1) + " - " + x.slice(0, i); g.appendChild(o); });
+    sel.appendChild(g);
+  }
+}
+let ADM_INIT = false, ADM = [];
+function goAdm() {
+  show("adm", "nvAdm");
+  if (!ADM_INIT) { ADM_INIT = true; fillFilter($("ffrom")); fillFilter($("fto")); $("e_br").innerHTML = $("br").innerHTML; $("fd1").value = $("fd2").value = tdy(); }
+  loadAdm();
+}
+async function loadAdm() {
+  $("acnt").textContent = "লোড হচ্ছে...";
+  const j = await api({ action: "admin_list", d1: $("fd1").value, d2: $("fd2").value, from: $("ffrom").value, to: $("fto").value, q: $("fq").value.trim() });
+  if (!j.ok) { $("acnt").textContent = "ডেটা আনা যায়নি। " + (ERRS[j.error] || ""); return; }
+  ADM = j.rows.map(toRec); renderAdm(j);
+}
+function renderAdm(j) {
+  const S = j.summary, tot = S.reduce((a, s) => ({ c: a.c + s.count, p: a.p + s.paid, d: a.d + s.due, k: a.k + s.cond, l: a.l + s.lot, v: a.v + s.del }), { c: 0, p: 0, d: 0, k: 0, l: 0, v: 0 });
+  $("acnt").textContent = "মোট " + j.matched + " টি বুকিং পাওয়া গেছে" + (ADM.length < j.matched ? " (প্রথম " + ADM.length + " টি দেখানো হচ্ছে)" : "") + " | নিচের হিসাবে বাতিল বুকিং ধরা হয়নি";
+  const cb = $("acards"); cb.textContent = "";
+  [["Bookings", tot.c], ["Paid (Cash)", "\u09F3" + tot.p], ["Due (To Pay)", "\u09F3" + tot.d], ["Condition", "\u09F3" + tot.k], ["Parcel (Lot)", tot.l], ["Delivered", tot.v]].forEach(([l, v]) => cb.appendChild(mkCard(l, v)));
+  const sb = $("asum"); sb.textContent = "";
+  S.forEach(s => sb.appendChild(mkTr([s.name + " [" + s.code + "]", s.count, "\u09F3" + s.paid, "\u09F3" + s.due, "\u09F3" + s.cond, s.lot, s.del])));
+  if (S.length) sb.appendChild(mkTr(["Total", tot.c, "\u09F3" + tot.p, "\u09F3" + tot.d, "\u09F3" + tot.k, tot.l, tot.v])).style.fontWeight = 700;
+  const lb = $("alist"); lb.textContent = "";
+  ADM.forEach(r => {
+    const m = money(r), canc = r.status === "বাতিল", ac = document.createElement("div");
+    const pr = mkBtn("প্রিন্ট", "dbtn", () => printMemo(r)), ed = mkBtn("Edit", "dbtn", () => openEdit(r));
+    const cn = mkBtn(canc ? "Restore" : "Cancel", "dbtn", () => cancelBk(r, !canc));
+    ac.append(pr, ed, cn);
+    const tr = mkTr([r.when, [r.no, "pill cn"], r.fromName, short(r.branch), r.receiverName + " (" + r.receiverPhone + ")", [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], "\u09F3" + m.due, ST(r), ac]);
+    if (canc) tr.style.opacity = ".55"; lb.appendChild(tr);
+  });
+}
+async function cancelBk(r, flag) {
+  if (!confirm(r.no + (flag ? " বুকিং বাতিল করবেন? (হিসাব থেকে বাদ যাবে)" : " বুকিং আবার চালু করবেন?"))) return;
+  const j = await api({ action: "admin_cancel", no: r.no, cancel: flag });
+  if (j.ok) loadAdm(); else alert(ERRS[j.error] || "হয়নি, আবার চেষ্টা করুন।");
+}
+let EDIT = null;
+function openEdit(r) {
+  EDIT = r; $("etitle").textContent = "Edit " + r.no;
+  $("e_sp").value = r.senderPhone; $("e_sn").value = r.senderName; $("e_rp").value = r.receiverPhone; $("e_rn").value = r.receiverName;
+  $("e_lot").value = r.lot; $("e_desc").value = r.desc; $("e_br").value = r.branch; $("e_dv").value = r.delivery; $("e_pay").value = r.pay; $("e_tk").value = r.taka;
+  $("e_cond").checked = r.condition === "হ্যাঁ"; $("e_ca").value = r.condAmt; $("e_cc").value = r.condChg; $("e_ccp").value = r.ccPay;
+  $("e_err").textContent = ""; $("edm").style.display = "flex";
+}
+$("e_ca").addEventListener("input", () => { const a = +$("e_ca").value || 0; $("e_cc").value = a > 0 ? Math.ceil(a / 1000) * 10 : 0; });
+$("ef").addEventListener("submit", async e => {
+  e.preventDefault();
+  const cond = $("e_cond").checked, ccp = $("e_ccp").value, ph = /^01\d{9}$/;
+  const d = { no: EDIT.no, senderPhone: $("e_sp").value.trim(), senderName: $("e_sn").value.trim(), receiverPhone: $("e_rp").value.trim(), receiverName: $("e_rn").value.trim(),
+    lot: $("e_lot").value, desc: $("e_desc").value.trim(), branch: $("e_br").value, delivery: $("e_dv").value, pay: $("e_pay").value, taka: $("e_tk").value,
+    condition: cond ? "হ্যাঁ" : "না", condAmt: cond ? ($("e_ca").value || "0") : "0", condChg: cond && ccp ? ($("e_cc").value || "0") : "0", ccPay: cond ? ccp : "", vat: "0" };
+  let m = "";
+  if (!ph.test(d.senderPhone) || !ph.test(d.receiverPhone)) m = "ফোন নম্বর ১১ digit এর হতে হবে (01 দিয়ে শুরু)।";
+  else if (!d.senderName || !d.receiverName || !d.desc) m = "নাম ও বিবরণ লিখুন।";
+  else if (!(+d.lot >= 1)) m = "লট কমপক্ষে ১ হতে হবে।";
+  else if (!d.branch || d.taka === "") m = "গন্তব্য শাখা ও ক্যারিং চার্জ দিন।";
+  else if (cond && (!(+d.condAmt > 0) || !ccp)) m = "কন্ডিশন অ্যামাউন্ট ও চার্জের ধরন (Cash/To Pay) দিন।";
+  $("e_err").textContent = m; if (m) return;
+  const mo = money(d); d.paid = mo.paid; d.due = mo.due;
+  const j = await api({ action: "admin_update", ...d });
+  if (j.ok) { $("edm").style.display = "none"; loadAdm(); } else $("e_err").textContent = ERRS[j.error] || "সেভ হয়নি, আবার চেষ্টা করুন।";
+});
+// ----- শাখা ও PIN -----
+let UALL = [];
+async function goUsr() {
+  show("usr", "nvUsr"); $("ucnt").textContent = "লোড হচ্ছে...";
+  const j = await api({ action: "admin_users" });
+  if (!j.ok) { $("ucnt").textContent = "ডেটা আনা যায়নি। " + (ERRS[j.error] || ""); return; }
+  UALL = j.rows; renderUsr();
+}
+function renderUsr() {
+  const q = $("uq").value.trim().toLowerCase(), box = $("ulist"); box.textContent = "";
+  const rows = UALL.filter(u => !q || (u[0] + " " + u[1] + " " + u[4] + " " + u[5]).toLowerCase().includes(q));
+  $("ucnt").textContent = rows.length + " টি শাখা/অ্যাডমিন";
+  rows.forEach(u => {
+    const on = u[3] !== "no", ac = document.createElement("div");
+    ac.appendChild(mkBtn("Edit", "dbtn", () => openUser(u)));
+    if (u[0] !== "ADMIN") {
+      ac.appendChild(mkBtn(on ? "বন্ধ করুন" : "চালু করুন", "dbtn", () => toggleUser(u, !on)));
+      ac.appendChild(mkBtn("Delete", "dbtn", () => delUser(u)));
+    }
+    box.appendChild(mkTr([u[0], u[1], u[5], u[2], [on ? "Active" : "Disabled", on ? "pill svc" : "pill topay"], ac]));
+  });
+}
+let UEDIT = null;
+function openUser(u) {
+  UEDIT = u; $("utitle").textContent = "Edit " + u[1] + " [" + u[0] + "]";
+  $("u_id").value = u[5]; $("u_nm").value = u[1]; $("u_pw").value = u[2]; $("u_nm").disabled = u[0] === "ADMIN";
+  $("u_err").textContent = ""; $("udm").style.display = "flex";
+}
+$("uf").addEventListener("submit", async e => {
+  e.preventDefault(); const u = UEDIT; if (!u) return;
+  const id = $("u_id").value.trim(), nm = $("u_nm").value.trim(), pw = $("u_pw").value.trim();
+  if (!/^[A-Za-z0-9_.\-]{3,20}$/.test(id)) { $("u_err").textContent = ERRS.BADID; return; }
+  if (!nm) { $("u_err").textContent = ERRS.BADNAME; return; }
+  if (pw && !/^\S{4,20}$/.test(pw)) { $("u_err").textContent = ERRS.BADPIN; return; }
+  const j = await api({ action: "admin_user_set", code: u[0], newId: id, newName: nm, newPin: pw });
+  if (j.ok) {
+    if (u[0] === "ADMIN") store.set("pin", j.id + "|" + j.pin);
+    $("udm").style.display = "none"; alert("সেভ হয়েছে।\nID: " + j.id + "\nPassword: " + j.pin); goUsr();
+  } else $("u_err").textContent = ERRS[j.error] || "সেভ হয়নি, আবার চেষ্টা করুন।";
+});
+async function delUser(u) {
+  if (!confirm(u[1] + " [" + u[0] + "] শাখা মুছে ফেলবেন?\nএই শাখা আর ঢুকতে পারবে না। আগের বুকিং Sheet-এ থেকে যাবে।")) return;
+  const j = await api({ action: "admin_user_delete", code: u[0] });
+  if (j.ok) goUsr(); else alert(ERRS[j.error] || "হয়নি, আবার চেষ্টা করুন।");
+}
+async function toggleUser(u, on) {
+  if (!confirm(u[1] + (on ? " শাখা চালু করবেন?" : " শাখা বন্ধ করবেন? (এই শাখা আর ঢুকতে পারবে না)"))) return;
+  const j = await api({ action: "admin_user_set", code: u[0], active: on });
+  if (j.ok) goUsr(); else alert(ERRS[j.error] || "হয়নি, আবার চেষ্টা করুন।");
+}
+$("nvAdm").onclick = goAdm; $("nvUsr").onclick = goUsr; $("fgo").onclick = loadAdm;
+$("ftd").onclick = () => { $("fd1").value = $("fd2").value = tdy(); loadAdm(); };
+$("fall").onclick = () => { $("fd1").value = $("fd2").value = ""; loadAdm(); };
+$("fq").addEventListener("keydown", e => { if (e.key === "Enter") loadAdm(); });
+$("uq").addEventListener("input", renderUsr); $("eCancel").onclick = () => { $("edm").style.display = "none"; }; $("uCancel").onclick = () => { $("udm").style.display = "none"; };
+
 const lockEl = $("lock");
-function showLock(msg) { lockEl.style.display = "flex"; $("lerr").textContent = msg || ""; $("pin").value = ""; $("pin").focus(); }
+function showLock(msg) { lockEl.style.display = "flex"; $("lerr").textContent = msg || ""; $("pin").value = ""; ($("uid").value ? $("pin") : $("uid")).focus(); }
 async function checkPin(p) {
   try { const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "check", pin: p }) }); return await r.json(); }
   catch (e) { return { ok: false, error: "NET" }; }
 }
 if (SCRIPT_URL) {
   lockEl.style.display = "flex";
-  (async () => { const p = store.get("pin", ""); if (p && (await checkPin(p)).ok) { lockEl.style.display = "none"; goDash(); } else showLock(); })();
-} else goDash();
+  (async () => { const p = store.get("pin", ""); const j = p ? await checkPin(p) : {}; if (j.ok) { if (j.branch) { ME = Object.assign({}, j.branch, { role: j.role || "branch" }); store.set("me", ME); } lockEl.style.display = "none"; home(); } else showLock(); })();
+} else home();
 $("lf").addEventListener("submit", async e => {
-  e.preventDefault(); const p = $("pin").value.trim(); if (!p) return;
+  e.preventDefault(); const uid = $("uid").value.trim(), pw = $("pin").value; if (!uid || !pw) return; const p = uid + "|" + pw;
   $("lerr").textContent = "যাচাই হচ্ছে...";
   const j = await checkPin(p);
-  if (j.ok) { store.set("pin", p); lockEl.style.display = "none"; goDash(); }
-  else $("lerr").textContent = j.error === "LOCKED" ? "অনেকবার ভুল হয়েছে, ১০ মিনিট পরে চেষ্টা করুন।" : j.error === "NET" ? "ইন্টারনেট দেখুন, আবার চেষ্টা করুন।" : "PIN ভুল।";
+  if (j.ok) { store.set("pin", p); if (j.branch) { ME = Object.assign({}, j.branch, { role: j.role || "branch" }); store.set("me", ME); } lockEl.style.display = "none"; home(); }
+  else $("lerr").textContent = j.error === "LOCKED" ? "অনেকবার ভুল হয়েছে, ১০ মিনিট পরে চেষ্টা করুন।" : j.error === "NET" ? "ইন্টারনেট দেখুন, আবার চেষ্টা করুন।" : j.error === "DISABLED" ? "এই শাখা বন্ধ আছে। অ্যাডমিনের সাথে যোগাযোগ করুন।" : "ID বা Password ভুল।";
 });
-$("lockBtn").onclick = () => { store.set("pin", ""); if (SCRIPT_URL) showLock(); };
+$("lockBtn").onclick = () => { store.set("pin", ""); store.set("me", null); if (SCRIPT_URL) showLock(); };
 document.addEventListener("wheel", () => { const a = document.activeElement; if (a && a.type === "number") a.blur(); }, { passive: true });
 let last = null;
 const val = n => (document.querySelector('input[name="' + n + '"]:checked') || {}).value || "";
@@ -341,19 +613,19 @@ $("f").addEventListener("submit", async e => {
     if (SCRIPT_URL) {
       const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ ...d, pin: store.get("pin", "") }) });
       const j = await r.json();
-      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার PIN দিন"); throw new Error(j.error || "সমস্যা"); }
+      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw new Error(j.error || "সমস্যা"); }
       no = j.no;
     } else {
       const n = store.get("counter", 0) + 1; store.set("counter", n);
       no = "JE-" + String(n).padStart(4, "0");
-      const all = store.get("bookings", []); all.push({ no, when: nowStr(), ...d }); store.set("bookings", all);
+      const all = store.get("bookings", []); all.push({ no, when: nowStr(), fromName: ME.name, fromCode: ME.code, ...d }); store.set("bookings", all);
     }
   } catch (x) {
     $("err").textContent = "বুকিং সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
     $("go").disabled = false; $("go").textContent = "বুকিং সেভ করুন"; return;
   }
   const s = store.get("senders", {}); s[d.senderPhone] = d.senderName; store.set("senders", s);
-  last = { no, when: nowStr(), ...d };
+  last = { no, when: nowStr(), fromName: ME.name, fromCode: ME.code, ...d };
   $("doneNo").textContent = no; $("done").style.display = "block";
   const m2 = money(d);
   $("sum").textContent = (d.condition === "হ্যাঁ" ? "কন্ডিশন " + m2.ca + ", টোটাল কন্ডিশন " + m2.tc + " | " : "") + "ক্যারিং " + (m2.carC + m2.carT) + " | পেইড " + m2.paid + " | ডিউ " + m2.due;
@@ -390,7 +662,7 @@ function printMemo(last) {
   const pr = store.get("printed", {}), isCopy = (pr[last.no] || 0) >= 1;
   pr[last.no] = (pr[last.no] || 0) + 1; store.set("printed", pr);
   const mo = money(last), memo = $("memo"); memo.textContent = "";
-  const dest = last.branch.replace(/\s*\([^()]*\)\s*\[\d+\]$/, "");
+  const from = last.fromName || ME.name, dest = last.branch.replace(/\s*\([^()]*\)\s*\[\d+\]$/, "");
   const SLIPS = [0, 266.2, 540];
   const put = (par, text, y, o) => {
     const e = document.createElement("div"); e.textContent = text; e.style.top = y + "pt";
@@ -403,9 +675,9 @@ function printMemo(last) {
   SLIPS.forEach(off => {
     const s = document.createElement("div"); s.style.left = PRINT_DX + "pt"; s.style.top = (off + PRINT_DY) + "pt"; s.style.width = "612pt"; s.style.height = "250pt";
     if (isCopy) put(s, "COPY", 84.9, { l: 67.5, size: 22.5, bold: true, color: "#f00" });
-    put(s, BRANCH, 40.5, { r: 490 }); put(s, last.no, 40.5, { r: 582, bold: true });
+    put(s, from, 40.5, { r: 490 }); put(s, last.no, 40.5, { r: 582, bold: true });
     put(s, last.senderName, 70.5, { r: 210 }); put(s, last.receiverName, 70.5, { r: 396 }); put(s, last.when, 70.5, { r: 582 });
-    put(s, BRANCH, 88.5, { r: 210 }); put(s, dest, 88.5, { r: 396 }); put(s, dest, 88.5, { r: 582 });
+    put(s, from, 88.5, { r: 210 }); put(s, dest, 88.5, { r: 396 }); put(s, dest, 88.5, { r: 582 });
     put(s, last.senderPhone, 106.5, { r: 210 }); put(s, last.receiverPhone, 106.5, { r: 396 }); put(s, last.delivery, 106.5, { r: 582 });
     put(s, last.desc, 159.7, { l: 79.2, size: 8.2 });
     const cols = [[216.3, last.lot], [247, mo.ca], [290.7, mo.ccC], [321.3, mo.ccT], [360, mo.tc === null ? "" : mo.tc],
