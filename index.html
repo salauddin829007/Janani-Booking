@@ -124,13 +124,15 @@ table.tbl .dbtn{margin-right:4px}
     <div><label for="fd2">To</label><input id="fd2" type="date"></div>
     <div><label for="ffrom">Booking Branch</label><select id="ffrom"><option value="">All</option></select></div>
     <div><label for="fto">Destination</label><select id="fto"><option value="">All</option></select></div>
+    <div><label for="fst">Status</label><select id="fst"><option value="">All</option><option value="pending">Delivery Stock (Pending)</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select></div>
+    <div><label for="fby">Date by</label><select id="fby"><option value="">Booking date</option><option value="delivery">Delivery date</option></select></div>
     <div><label for="fq">Search</label><input id="fq" type="text" placeholder="CN / Phone / Name"></div>
     <div class="fb"><button class="dbtn ok" id="fgo" type="button">Search</button><button class="dbtn" id="ftd" type="button">Today</button><button class="dbtn" id="fall" type="button">All</button><button class="dbtn" id="fdl" type="button">Download Excel</button></div>
   </div>
   <div id="acnt"></div>
   <div class="cards" id="acards"></div>
   <div class="panel" style="margin-bottom:14px"><h2>Branch wise</h2><div class="tw"><table class="tbl"><thead><tr><th>Branch</th><th>Bookings</th><th>Paid (Cash)</th><th>Due (To Pay)</th><th>Lot</th><th>Delivered</th></tr></thead><tbody id="asum"></tbody></table></div></div>
-  <div class="tw"><table class="tbl"><thead><tr><th>Date</th><th>CN</th><th>From</th><th>To</th><th>Receiver</th><th>Charge Type</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead><tbody id="alist"></tbody></table></div>
+  <div class="tw"><table class="tbl"><thead><tr><th>Date</th><th>CN</th><th>From</th><th>To</th><th>Receiver</th><th>Charge Type</th><th>Due</th><th>Status</th><th>Delivered Time</th><th>Actions</th></tr></thead><tbody id="alist"></tbody></table></div>
 </section>
 <section id="vMon" style="display:none">
   <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Monthly Top Sheet</h1>
@@ -337,13 +339,17 @@ async function renderDash() {
   const own = ALL.filter(mine), rs = "\u09F3"; $("dcap").textContent = "";
   const j = await api({ action: "dash" }), D = j.ok ? j.D : null;
   if (!D) $("dcap").textContent = "হিসাব আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
-  const items = D ? [["আজকের Cash Booking", rs + D.tcb], ["আজকের To Pay Booking", rs + D.ttp], ["Undelivered CN", D.pn], ["Undelivered টাকা (To Pay)", rs + D.pa],
-    ["এই মাসের Cash Booking", rs + D.mcb], ["এই মাসের To Pay Booking", rs + D.mtp], ["এই মাসের To Pay Delivery", rs + D.mtd]] : [];
+  const groups = D ? [
+    ["আজকের", [["Cash Booking", rs + D.tcb], ["To Pay Booking", rs + D.ttp]]],
+    ["Undelivered", [["CN", D.pn], ["টাকা (To Pay)", rs + D.pa]]],
+    ["এই মাসের", [["Cash Booking", rs + D.mcb], ["To Pay Booking", rs + D.mtp], ["To Pay Delivery", rs + D.mtd]]]] : [];
   const box = $("cards"); box.textContent = "";
-  items.forEach(([l, v]) => {
-    const c = document.createElement("div"), ic = document.createElement("i"), t = document.createElement("div"), b = document.createElement("b"), sp = document.createElement("span");
+  groups.forEach(([title, lines]) => {
+    const c = document.createElement("div"), ic = document.createElement("i"), t = document.createElement("div"), b = document.createElement("b");
     c.className = "cd"; ic.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>';
-    b.textContent = v; sp.textContent = l; t.append(b, sp); c.append(ic, t); box.appendChild(c);
+    b.textContent = title; b.style.marginBottom = "6px"; t.appendChild(b);
+    lines.forEach(([l, v]) => { const sp = document.createElement("span"); sp.style.display = "block"; sp.style.lineHeight = "1.7"; sp.textContent = l + ": " + v; t.appendChild(sp); });
+    c.append(ic, t); box.appendChild(c);
   });
   const days = [], counts = [];
   for (let i = 6; i >= 0; i--) { const d = new Date(Date.now() - i * 864e5); days.push(d); counts.push(own.filter(r => dkey(r.when) === fmtKey(d)).length); }
@@ -464,7 +470,7 @@ function goAdm() {
 }
 async function loadAdm() {
   $("acnt").textContent = "লোড হচ্ছে...";
-  const j = await api({ action: "admin_list", d1: $("fd1").value, d2: $("fd2").value, from: $("ffrom").value, to: $("fto").value, q: $("fq").value.trim() });
+  const j = await api({ action: "admin_list", d1: $("fd1").value, d2: $("fd2").value, from: $("ffrom").value, to: $("fto").value, q: $("fq").value.trim(), status: $("fst").value, by: $("fby").value });
   if (!j.ok) { $("acnt").textContent = "ডেটা আনা যায়নি। " + (ERRS[j.error] || ""); return; }
   ADM = j.rows.map(toRec); renderAdm(j);
 }
@@ -483,7 +489,7 @@ function renderAdm(j) {
     const pr = mkBtn("প্রিন্ট", "dbtn", () => printMemo(r)), ed = mkBtn("Edit", "dbtn", () => openEdit(r));
     const cn = mkBtn(canc ? "Restore" : "Cancel", "dbtn", () => cancelBk(r, !canc));
     ac.append(pr, ed, cn); if (isDel(r) && !canc) ac.append(mkBtn("Undo Delivery", "dbtn", () => undoDel(r)));
-    const tr = mkTr([r.when, [r.no, "pill cn"], r.fromName, short(r.branch), r.receiverName + " (" + r.receiverPhone + ")", [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], "\u09F3" + m.due, ST(r), ac]);
+    const tr = mkTr([r.when, [r.no, "pill cn"], r.fromName, short(r.branch), r.receiverName + " (" + r.receiverPhone + ")", [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], "\u09F3" + m.due, ST(r), r.dtime || "", ac]);
     if (canc) tr.style.opacity = ".55"; lb.appendChild(tr);
   });
 }
@@ -572,7 +578,7 @@ async function toggleUser(u, on) {
 }
 $("nvAdm").onclick = goAdm; $("nvUsr").onclick = goUsr; $("fgo").onclick = loadAdm;
 $("ftd").onclick = () => { $("fd1").value = $("fd2").value = tdy(); loadAdm(); };
-$("fall").onclick = () => { $("fd1").value = $("fd2").value = ""; loadAdm(); };
+$("fall").onclick = () => { $("fd1").value = $("fd2").value = $("fq").value = $("fst").value = $("fby").value = ""; $("ffrom").value = $("fto").value = ""; loadAdm(); };
 $("fq").addEventListener("keydown", e => { if (e.key === "Enter") loadAdm(); });
 $("uq").addEventListener("input", renderUsr); $("eCancel").onclick = () => { $("edm").style.display = "none"; }; $("uCancel").onclick = () => { $("udm").style.display = "none"; };
 
@@ -616,8 +622,8 @@ $("fdl").onclick = () => {
   const d1 = $("fd1").value || "all", d2 = $("fd2").value || "all";
   const rows = [["Branch wise report", d1 + " to " + d2], ["Branch", "Code", "Bookings", "Paid (Cash)", "Due (To Pay)", "Lot", "Delivered"]];
   ADMS.forEach(s => rows.push([s.name, s.code, s.count, s.paid, s.due, s.lot, s.del]));
-  rows.push([], ["Date", "CN", "From", "To", "Receiver", "Phone", "Charge Type", "Due", "Status"]);
-  ADM.forEach(r => rows.push([r.when, r.no, r.fromName, short(r.branch), r.receiverName, r.receiverPhone, r.pay, money(r).due, r.status]));
+  rows.push([], ["Date", "CN", "From", "To", "Receiver", "Phone", "Charge Type", "Due", "Status", "Delivered Time"]);
+  ADM.forEach(r => rows.push([r.when, r.no, r.fromName, short(r.branch), r.receiverName, r.receiverPhone, r.pay, money(r).due, r.status, r.dtime]));
   dl("report-" + d1 + "_" + d2 + ".csv", rows);
 };
 // ----- শাখার Daily Report -----
