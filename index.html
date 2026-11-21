@@ -98,7 +98,7 @@ table.tbl .dbtn{margin-right:4px}
 <button class="nv" id="nvAdd" type="button">+ Add Booking</button>
 <button class="nv" id="nvDel" type="button">Delivery Stock List</button>
 <button class="nv" id="nvDone" type="button">Delivery List</button>
-<button class="nv" id="nvMon" type="button">Monthly Top Sheet</button>
+<button class="nv" id="nvMon" type="button" style="display:none">Monthly Top Sheet</button>
 <button class="nv" id="nvRep" type="button" style="display:none">Daily Report</button>
 <button class="nv" id="nvAdm" type="button" style="display:none">Admin Panel</button>
 <button class="nv" id="nvUsr" type="button" style="display:none">Branches &amp; Login</button>
@@ -333,14 +333,12 @@ function renderList() {
     ac.appendChild(pb); tr.appendChild(ac); box.appendChild(tr);
   });
 }
-function renderDash() {
-  const tk = fmtKey(new Date()), own = ALL.filter(mine), inc = ALL.filter(toMe), rows = own.filter(r => dkey(r.when) === tk);
-  let paid = 0, due = 0, lot = 0, od = 0, hd = 0;
-  rows.forEach(r => { const m = money(r); paid += m.paid; due += m.due; lot += +r.lot || 0; if (r.delivery === "O/D") od++; else if (r.delivery === "H/D") hd++; });
-  const pend = inc.filter(r => !isDel(r)), dn = inc.filter(isDel);
-  const items = [["Today Booking", rows.length], ["Total Booking", TOTAL], ["Today Paid (Cash)", "\u09F3" + paid], ["Today Due (To Pay)", "\u09F3" + due],
-    ["Today Parcel (Lot)", lot], ["Today O/D", od], ["Today H/D", hd],
-    ["Pending Delivery", pend.length], ["Delivered Today", dn.filter(r => dkey(r.dtime) === tk).length], ["Pending Due (To Pay)", "\u09F3" + pend.reduce((a, r) => a + money(r).due, 0)], ["Total Delivered", dn.length]];
+async function renderDash() {
+  const own = ALL.filter(mine), rs = "\u09F3"; $("dcap").textContent = "";
+  const j = await api({ action: "dash" }), D = j.ok ? j.D : null;
+  if (!D) $("dcap").textContent = "হিসাব আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+  const items = D ? [["আজকের Cash Booking", rs + D.tcb], ["আজকের To Pay Booking", rs + D.ttp], ["Undelivered CN", D.pn], ["Undelivered টাকা (To Pay)", rs + D.pa],
+    ["এই মাসের Cash Booking", rs + D.mcb], ["এই মাসের To Pay Booking", rs + D.mtp], ["এই মাসের To Pay Delivery", rs + D.mtd]] : [];
   const box = $("cards"); box.textContent = "";
   items.forEach(([l, v]) => {
     const c = document.createElement("div"), ic = document.createElement("i"), t = document.createElement("div"), b = document.createElement("b"), sp = document.createElement("span");
@@ -356,7 +354,7 @@ function renderDash() {
   const pts = counts.map((v, i) => x(i) + "," + y(v)).join(" ");
   let lab = ""; days.forEach((d, i) => { lab += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#8a93a6">${p2(d.getDate())}/${p2(d.getMonth() + 1)}</text><text x="${x(i)}" y="${y(counts[i]) - 9}" text-anchor="middle" font-size="11" fill="#1c2433">${counts[i]}</text>`; });
   $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="গত ৭ দিনের বুকিং">${g}<polyline points="${pts}" fill="none" stroke="#e53935" stroke-width="3" stroke-linejoin="round"/>${counts.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="#e53935"/>`).join("")}${lab}</svg>`;
-  $("dcap").textContent = own.length < TOTAL ? "সর্বশেষ " + own.length + " টি বুকিং এর ডেটা থেকে হিসাব করা হয়েছে।" : "";
+  if (D) $("dcap").textContent = own.length < TOTAL ? "গ্রাফ সর্বশেষ " + own.length + " টি বুকিং এর ডেটা থেকে।" : "";
 }
 const DELIVERED = "মাল ডেলিভারি হয়েছে", PENDING = "বুকিং হয়েছে";
 const isDel = r => r.status === DELIVERED;
@@ -437,7 +435,7 @@ function home() { if (ME.role === "admin") goAdm(); else goDash(); }
 function applyRole() {
   const a = ME.role === "admin";
   ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone"].forEach(i => $(i).style.display = a ? "none" : "");
-  ["nvAdm", "nvUsr"].forEach(i => $(i).style.display = a ? "" : "none");
+  ["nvAdm", "nvUsr", "nvMon"].forEach(i => $(i).style.display = a ? "" : "none");
 }
 const tdy = () => { const t = new Date(); return t.getFullYear() + "-" + p2(t.getMonth() + 1) + "-" + p2(t.getDate()); };
 const mkCard = (l, v) => {
