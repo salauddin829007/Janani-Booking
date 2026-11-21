@@ -98,6 +98,7 @@ table.tbl .dbtn{margin-right:4px}
 <button class="nv" id="nvAdd" type="button">+ Add Booking</button>
 <button class="nv" id="nvDel" type="button">Delivery List</button>
 <button class="nv" id="nvDone" type="button">Delivered List</button>
+<button class="nv" id="nvTop" type="button">Top Sheet</button>
 <button class="nv" id="nvRep" type="button">Daily Report</button>
 <button class="nv" id="nvAdm" type="button" style="display:none">Admin Panel</button>
 <button class="nv" id="nvUsr" type="button" style="display:none">Branches &amp; Login</button>
@@ -128,15 +129,22 @@ table.tbl .dbtn{margin-right:4px}
   </div>
   <div id="acnt"></div>
   <div class="cards" id="acards"></div>
-  <div class="panel" style="margin-bottom:14px"><h2>Branch wise</h2><div class="tw"><table class="tbl"><thead><tr><th>Branch</th><th>Bookings</th><th>Paid (Cash)</th><th>Due (To Pay)</th><th>Condition</th><th>Lot</th><th>Delivered</th></tr></thead><tbody id="asum"></tbody></table></div></div>
+  <div class="panel" style="margin-bottom:14px"><h2>Branch wise</h2><div class="tw"><table class="tbl"><thead><tr><th>Branch</th><th>Bookings</th><th>Paid (Cash)</th><th>Due (To Pay)</th><th>Condition</th><th>Cond. Charge (Cash)</th><th>Lot</th><th>Delivered</th></tr></thead><tbody id="asum"></tbody></table></div></div>
   <div class="tw"><table class="tbl"><thead><tr><th>Date</th><th>CN</th><th>From</th><th>To</th><th>Receiver</th><th>Charge Type</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead><tbody id="alist"></tbody></table></div>
+</section>
+<section id="vTop" style="display:none">
+  <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Top Sheet</h1>
+  <div class="flt"><div><label for="tpd">Date</label><input id="tpd" type="date"></div><div><label for="tpb">Branch</label><select id="tpb"></select></div>
+    <div class="fb"><button class="dbtn ok" id="tgo" type="button">Show</button><button class="dbtn" id="tpr" type="button">Print</button><button class="dbtn" id="tdl" type="button">Download Excel</button></div></div>
+  <div class="tw"><table class="tbl" id="ttbl"></table></div>
+  <h2 style="font-size:16px;margin:14px 0 6px">টাকার হিসাব (দিনের মোট, সব শাখা)</h2><div class="tw"><table class="tbl"><tbody id="tsum"></tbody></table></div><div id="tcap"></div>
 </section>
 <section id="vRep" style="display:none">
   <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Daily Report</h1>
   <div class="flt"><div><label for="rd">Date</label><input id="rd" type="date"></div>
     <div class="fb"><button class="dbtn ok" id="rgo" type="button">Show</button><button class="dbtn" id="rdl" type="button">Download Excel</button></div></div>
   <div class="tw" style="margin-bottom:14px"><table class="tbl"><tbody id="rsum"></tbody></table></div>
-  <h2 style="font-size:16px;margin:6px 0">Delivered (এই তারিখে ডেলিভারি হয়েছে)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Delivered Time</th><th>CN</th><th>Receiver</th><th>From</th><th>Charge Type</th><th>Due Collected</th></tr></thead><tbody id="rdel"></tbody></table></div>
+  <h2 style="font-size:16px;margin:6px 0">Delivered (এই তারিখে ডেলিভারি হয়েছে)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Delivered Time</th><th>CN</th><th>Receiver</th><th>From</th><th>Charge Type</th><th>Collected</th></tr></thead><tbody id="rdel"></tbody></table></div>
   <h2 style="font-size:16px;margin:6px 0">Booked (এই তারিখে বুকিং হয়েছে)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Time</th><th>CN</th><th>Receiver</th><th>To</th><th>Charge Type</th><th>Due</th><th>Status</th></tr></thead><tbody id="rbk"></tbody></table></div><div id="rcap"></div>
 </section>
 <section id="vUsr" style="display:none">
@@ -341,12 +349,12 @@ function renderList() {
 }
 function renderDash() {
   const tk = fmtKey(new Date()), own = ALL.filter(mine), inc = ALL.filter(toMe), rows = own.filter(r => dkey(r.when) === tk);
-  let paid = 0, due = 0, ca = 0, lot = 0, od = 0, hd = 0;
-  rows.forEach(r => { const m = money(r); paid += m.paid; due += m.due; ca += m.ca; lot += +r.lot || 0; if (r.delivery === "O/D") od++; else if (r.delivery === "H/D") hd++; });
+  let paid = 0, due = 0, ca = 0, ccc = 0, lot = 0, od = 0, hd = 0;
+  rows.forEach(r => { const m = money(r); paid += m.paid; due += m.due; ca += m.tc || 0; ccc += m.ccC; lot += +r.lot || 0; if (r.delivery === "O/D") od++; else if (r.delivery === "H/D") hd++; });
   const pend = inc.filter(r => !isDel(r)), dn = inc.filter(isDel);
   const items = [["Today Booking", rows.length], ["Total Booking", TOTAL], ["Today Paid (Cash)", "\u09F3" + paid], ["Today Due (To Pay)", "\u09F3" + due],
-    ["Today Condition", "\u09F3" + ca], ["Today Parcel (Lot)", lot], ["Today O/D", od], ["Today H/D", hd],
-    ["Pending Delivery", pend.length], ["Delivered Today", dn.filter(r => dkey(r.dtime) === tk).length], ["Pending Due (To Pay)", "\u09F3" + pend.reduce((a, r) => a + money(r).due, 0)], ["Total Delivered", dn.length]];
+    ["Today Condition", "\u09F3" + ca], ["Today Cond. Charge (Cash)", "\u09F3" + ccc], ["Today Parcel (Lot)", lot], ["Today O/D", od], ["Today H/D", hd],
+    ["Pending Delivery", pend.length], ["Delivered Today", dn.filter(r => dkey(r.dtime) === tk).length], ["Pending Collect", "\u09F3" + pend.reduce((a, r) => a + money(r).collect, 0)], ["Total Delivered", dn.length]];
   const box = $("cards"); box.textContent = "";
   items.forEach(([l, v]) => {
     const c = document.createElement("div"), ic = document.createElement("i"), t = document.createElement("div"), b = document.createElement("b"), sp = document.createElement("span");
@@ -380,11 +388,11 @@ function renderDel() {
     const m = money(r), tr = document.createElement("tr");
     const td = (txt, cls) => { const c = document.createElement("td"); if (cls) { const b = document.createElement("span"); b.className = cls; b.textContent = txt; c.appendChild(b); } else c.textContent = txt; tr.appendChild(c); return c; };
     td(done ? r.dtime : r.when); td(r.no, "pill cn"); td(r.receiverName); td(r.receiverPhone); td(r.fromName || "Sylhet");
-    td(r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")); td("\u09F3" + m.due).className = "chg"; td(r.delivery, "pill svc");
+    td(r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")); td("\u09F3" + m.collect).className = "chg"; td(r.delivery, "pill svc");
     const ac = document.createElement("td"), bt = document.createElement("button");
     bt.type = "button"; bt.className = "dbtn" + (done ? "" : " ok"); bt.textContent = done ? "Undo" : "Delivered";
     bt.onclick = () => done ? setDelivered(r, false, bt) : openDv(r, bt); ac.appendChild(bt);
-    if (!done) { const wa = document.createElement("a"), tx = "জননী এক্সপ্রেস: আপনার মাল (CN " + r.no + ") " + ME.name + " শাখায় এসেছে। ডেলিভারির সময় দিতে হবে \u09F3" + m.due + "। অনুগ্রহ করে নিয়ে যান।"; wa.className = "dbtn"; wa.target = "_blank"; wa.rel = "noopener"; wa.textContent = "WhatsApp"; wa.href = "https://wa.me/88" + r.receiverPhone + "?text=" + encodeURIComponent(tx); ac.appendChild(wa); }
+    if (!done) { const wa = document.createElement("a"), tx = "জননী এক্সপ্রেস: আপনার মাল (CN " + r.no + ") " + ME.name + " শাখায় এসেছে। ডেলিভারির সময় দিতে হবে \u09F3" + m.collect + "। অনুগ্রহ করে নিয়ে যান।"; wa.className = "dbtn"; wa.target = "_blank"; wa.rel = "noopener"; wa.textContent = "WhatsApp"; wa.href = "https://wa.me/88" + r.receiverPhone + "?text=" + encodeURIComponent(tx); ac.appendChild(wa); }
     else if (r.proof) { const pa = document.createElement("a"); pa.className = "dbtn"; pa.target = "_blank"; pa.rel = "noopener"; pa.textContent = "ছবি"; pa.href = r.proof; ac.appendChild(pa); }
     tr.appendChild(ac); box.appendChild(tr);
   });
@@ -412,11 +420,11 @@ async function goDel(mode) {
   DMODE = mode; show("del", mode === "done" ? "nvDone" : "nvDel"); $("dcnt").textContent = "লোড হচ্ছে..."; $("dlist").textContent = "";
   if (await loadAll()) renderDel(); else $("dcnt").textContent = "তালিকা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
 }
-const VIEWS = { dash: "vDash", list: "vList", form: "vForm", del: "vDel", rep: "vRep", adm: "vAdm", usr: "vUsr" };
+const VIEWS = { dash: "vDash", list: "vList", form: "vForm", del: "vDel", rep: "vRep", top: "vTop", adm: "vAdm", usr: "vUsr" };
 function show(v, nav) {
   $("meName").textContent = ME.role === "admin" ? "অ্যাডমিন" : ME.name ? "শাখা: " + ME.name : ""; applyRole();
   for (const k in VIEWS) $(VIEWS[k]).style.display = k === v ? "" : "none";
-  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvRep", "nvAdm", "nvUsr"].forEach(i => $(i).classList.toggle("on", i === nav)); scrollTo(0, 0);
+  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvTop", "nvRep", "nvAdm", "nvUsr"].forEach(i => $(i).classList.toggle("on", i === nav)); scrollTo(0, 0);
 }
 async function goDash() {
   show("dash", "nvDash"); $("dtitle").textContent = "Booking " + ME.name; $("dcap").textContent = "লোড হচ্ছে...";
@@ -443,7 +451,7 @@ async function api(body) {
 function home() { if (ME.role === "admin") goAdm(); else goDash(); }
 function applyRole() {
   const a = ME.role === "admin";
-  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvRep"].forEach(i => $(i).style.display = a ? "none" : "");
+  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvTop", "nvRep"].forEach(i => $(i).style.display = a ? "none" : "");
   ["nvAdm", "nvUsr"].forEach(i => $(i).style.display = a ? "" : "none");
 }
 const tdy = () => { const t = new Date(); return t.getFullYear() + "-" + p2(t.getMonth() + 1) + "-" + p2(t.getDate()); };
@@ -479,12 +487,12 @@ async function loadAdm() {
 }
 let ADMS = [];
 function renderAdm(j) {
-  ADMS = j.summary; const S = j.summary, tot = S.reduce((a, s) => ({ c: a.c + s.count, p: a.p + s.paid, d: a.d + s.due, k: a.k + s.cond, l: a.l + s.lot, v: a.v + s.del }), { c: 0, p: 0, d: 0, k: 0, l: 0, v: 0 });
+  ADMS = j.summary; const S = j.summary, tot = S.reduce((a, s) => ({ c: a.c + s.count, p: a.p + s.paid, d: a.d + s.due, k: a.k + s.cond, g: a.g + (s.ccc || 0), l: a.l + s.lot, v: a.v + s.del }), { c: 0, p: 0, d: 0, k: 0, g: 0, l: 0, v: 0 });
   $("acnt").textContent = "মোট " + j.matched + " টি বুকিং পাওয়া গেছে" + (ADM.length < j.matched ? " (প্রথম " + ADM.length + " টি দেখানো হচ্ছে)" : "") + " | নিচের হিসাবে বাতিল বুকিং ধরা হয়নি";
   const cb = $("acards"); cb.textContent = "";
-  [["Bookings", tot.c], ["Paid (Cash)", "\u09F3" + tot.p], ["Due (To Pay)", "\u09F3" + tot.d], ["Condition", "\u09F3" + tot.k], ["Parcel (Lot)", tot.l], ["Delivered", tot.v]].forEach(([l, v]) => cb.appendChild(mkCard(l, v)));
+  [["Bookings", tot.c], ["Paid (Cash)", "\u09F3" + tot.p], ["Due (To Pay)", "\u09F3" + tot.d], ["Condition", "\u09F3" + tot.k], ["Cond. Charge (Cash)", "\u09F3" + tot.g], ["Parcel (Lot)", tot.l], ["Delivered", tot.v]].forEach(([l, v]) => cb.appendChild(mkCard(l, v)));
   const sb = $("asum"); sb.textContent = "";
-  S.forEach(s => sb.appendChild(mkTr([s.name + " [" + s.code + "]", s.count, "\u09F3" + s.paid, "\u09F3" + s.due, "\u09F3" + s.cond, s.lot, s.del])));
+  S.forEach(s => sb.appendChild(mkTr([s.name + " [" + s.code + "]", s.count, "\u09F3" + s.paid, "\u09F3" + s.due, "\u09F3" + s.cond, "\u09F3" + (s.ccc || 0), s.lot, s.del])));
   if (S.length) sb.appendChild(mkTr(["Total", tot.c, "\u09F3" + tot.p, "\u09F3" + tot.d, "\u09F3" + tot.k, tot.l, tot.v])).style.fontWeight = 700;
   const lb = $("alist"); lb.textContent = "";
   ADM.forEach(r => {
@@ -587,7 +595,7 @@ $("uq").addEventListener("input", renderUsr); $("eCancel").onclick = () => { $("
 let DVR = null, DVB = null;
 function showDvInfo(r) {
   const m = money(r); $("dv_i").textContent = "";
-  [["CN", r.no], ["প্রাপক", r.receiverName + " (" + r.receiverPhone + ")"], ["কোথা থেকে", r.fromName || "Sylhet"], ["নিতে হবে", "\u09F3" + m.due + " (" + r.pay + ")"], ["ডেলিভারি", r.delivery]].forEach(([k, v]) => { const d = document.createElement("div"); d.textContent = k + ": " + v; $("dv_i").appendChild(d); });
+  [["CN", r.no], ["প্রাপক", r.receiverName + " (" + r.receiverPhone + ")"], ["কোথা থেকে", r.fromName || "Sylhet"], ["নিতে হবে", "\u09F3" + m.collect + (m.tc ? " (কন্ডিশন " + m.tc + " সহ)" : "")], ["ডেলিভারি", r.delivery]].forEach(([k, v]) => { const d = document.createElement("div"); d.textContent = k + ": " + v; $("dv_i").appendChild(d); });
 }
 function dvSearch() {
   let q = $("dv_cn").value.trim().toUpperCase(); if (/^\d+$/.test(q)) q = "JE-" + q.padStart(4, "0");
@@ -621,8 +629,8 @@ function dl(name, rows) {
 }
 $("fdl").onclick = () => {
   const d1 = $("fd1").value || "all", d2 = $("fd2").value || "all";
-  const rows = [["Branch wise report", d1 + " to " + d2], ["Branch", "Code", "Bookings", "Paid (Cash)", "Due (To Pay)", "Condition", "Lot", "Delivered"]];
-  ADMS.forEach(s => rows.push([s.name, s.code, s.count, s.paid, s.due, s.cond, s.lot, s.del]));
+  const rows = [["Branch wise report", d1 + " to " + d2], ["Branch", "Code", "Bookings", "Paid (Cash)", "Due (To Pay)", "Condition", "Cond. Charge (Cash)", "Lot", "Delivered"]];
+  ADMS.forEach(s => rows.push([s.name, s.code, s.count, s.paid, s.due, s.cond, s.ccc || 0, s.lot, s.del]));
   rows.push([], ["Date", "CN", "From", "To", "Receiver", "Phone", "Charge Type", "Due", "Status"]);
   ADM.forEach(r => rows.push([r.when, r.no, r.fromName, short(r.branch), r.receiverName, r.receiverPhone, r.pay, money(r).due, r.status]));
   dl("report-" + d1 + "_" + d2 + ".csv", rows);
@@ -635,19 +643,19 @@ async function goRep() {
 }
 function renderRep() {
   const k = $("rd").value.split("-").reverse().join("-"), rows = ALL.filter(mine).filter(r => dkey(r.when) === k && r.status !== "বাতিল");
-  let paid = 0, due = 0, ca = 0, lot = 0, od = 0, hd = 0;
-  rows.forEach(r => { const m = money(r); paid += m.paid; due += m.due; ca += m.ca; lot += +r.lot || 0; if (r.delivery === "O/D") od++; else if (r.delivery === "H/D") hd++; });
-  const dn = ALL.filter(toMe).filter(r => isDel(r) && dkey(r.dtime) === k), col = dn.reduce((a, r) => a + money(r).due, 0);
-  REP = [["Date", k], ["Branch", ME.name], ["Bookings", rows.length], ["Paid (Cash)", paid], ["Due (To Pay)", due], ["Condition", ca], ["Parcel (Lot)", lot], ["O/D", od], ["H/D", hd], ["Delivered here", dn.length], ["Collected at delivery", col], ["Cash received (Paid + Delivery)", paid + col]];
+  let paid = 0, due = 0, ca = 0, ccc = 0, lot = 0, od = 0, hd = 0;
+  rows.forEach(r => { const m = money(r); paid += m.paid; due += m.due; ca += m.tc || 0; ccc += m.ccC; lot += +r.lot || 0; if (r.delivery === "O/D") od++; else if (r.delivery === "H/D") hd++; });
+  const dn = ALL.filter(toMe).filter(r => isDel(r) && dkey(r.dtime) === k), col = dn.reduce((a, r) => a + money(r).collect, 0);
+  REP = [["Date", k], ["Branch", ME.name], ["Bookings", rows.length], ["Paid (Cash)", paid], ["Due (To Pay)", due], ["Condition", ca], ["Cond. Charge (Cash)", ccc], ["Parcel (Lot)", lot], ["O/D", od], ["H/D", hd], ["Delivered here", dn.length], ["Collected at delivery", col], ["Cash received (Paid + Cond. Charge + Delivery)", paid + ccc + col]];
   const tk = "\u09F3", fill = (id, list) => { const b = $(id); b.textContent = ""; list.forEach(c => b.appendChild(mkTr(c))); };
   fill("rsum", REP.slice(2).map(([l, v]) => [l, /Paid|Due|Condition|Collected|Cash/.test(l) ? tk + v : v]));
-  fill("rdel", dn.map(r => [r.dtime, [r.no, "pill cn"], r.receiverName + " (" + r.receiverPhone + ")", r.fromName, [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], tk + money(r).due]));
+  fill("rdel", dn.map(r => [r.dtime, [r.no, "pill cn"], r.receiverName + " (" + r.receiverPhone + ")", r.fromName, [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], tk + money(r).collect]));
   fill("rbk", rows.map(r => [r.when, [r.no, "pill cn"], r.receiverName + " (" + r.receiverPhone + ")", short(r.branch), [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], tk + money(r).due, isDel(r) ? "Delivered" : "Booked"]));
   REP.push([], ["Delivered", "CN", "Receiver", "Phone", "From", "Charge Type", "Due Collected"]);
-  dn.forEach(r => REP.push([r.dtime, r.no, r.receiverName, r.receiverPhone, r.fromName, r.pay, money(r).due]));
+  dn.forEach(r => REP.push([r.dtime, r.no, r.receiverName, r.receiverPhone, r.fromName, r.pay, money(r).collect]));
   REP.push([], ["Booked", "CN", "Receiver", "Phone", "To", "Charge Type", "Due", "Status"]);
   rows.forEach(r => REP.push([r.when, r.no, r.receiverName, r.receiverPhone, short(r.branch), r.pay, money(r).due, isDel(r) ? "Delivered" : "Booked"]));
-  $("rcap").textContent = "সর্বশেষ " + ALL.filter(mine).length + " টি বুকিং এর ডেটা থেকে হিসাব। Cash received = বুকিং এর সময় পাওয়া Paid + ডেলিভারির সময় নেওয়া Due। (ডেলিভারি টেবিলে শুধু আপনার শাখায় আসা মাল)";
+  $("rcap").textContent = "সর্বশেষ " + ALL.filter(mine).length + " টি বুকিং এর ডেটা থেকে হিসাব। Cash received = বুকিং এর সময় পাওয়া Paid ও Cash কন্ডিশন চার্জ + ডেলিভারির সময় নেওয়া টাকা (To Pay + কন্ডিশন)। (ডেলিভারি টেবিলে শুধু আপনার শাখায় আসা মাল)";
 }
 $("nvRep").onclick = goRep; $("rgo").onclick = renderRep; $("rd").addEventListener("change", renderRep); $("rdl").onclick = () => dl("daily-" + ME.name + "-" + $("rd").value + ".csv", REP);
 // ----- মাল ট্র্যাকিং (লগইন ছাড়া) -----
@@ -664,6 +672,48 @@ $("tf").addEventListener("submit", async e => {
   } catch (x) { out.textContent = "ইন্টারনেট দেখে আবার চেষ্টা করুন।"; }
 });
 $("t_res").style.whiteSpace = "pre-line";
+
+// ----- Top Sheet (শাখা অনুযায়ী) -----
+let TOPA = [], TOPS = [];
+const tkey = () => $("tpd").value.split("-").reverse().join("-");
+const tbook = () => ALL.filter(mine).filter(r => dkey(r.when) === tkey() && r.status !== "বাতিল");
+async function goTop() {
+  show("top", "nvTop"); if (!$("tpd").value) $("tpd").value = tdy(); $("tcap").textContent = "লোড হচ্ছে...";
+  if (await loadAll()) fillTopBr(); else $("tcap").textContent = "ডেটা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+}
+function fillTopBr() {
+  const cur = $("tpb").value, sel = $("tpb"); sel.textContent = "";
+  const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "সব শাখা"; sel.appendChild(o0);
+  [...new Set(tbook().map(r => r.branch))].sort().forEach(b => { const o = document.createElement("option"); o.value = b; o.textContent = short(b); sel.appendChild(o); });
+  sel.value = [...sel.options].some(o => o.value === cur) ? cur : ""; renderTop();
+}
+function renderTop() {
+  const b = $("tpb").value, rows = tbook().filter(r => !b || r.branch === b).sort((x, y) => x.branch.localeCompare(y.branch) || x.no.localeCompare(y.no));
+  const H = ["SL", "CN", "Sender", "Receiver", "To", "Lot", "Paid", "To Pay", "Condition", "Cond. Chg (Cash)", "Cond. Chg (To Pay)", "Total Condition", "Collect at Delivery"], T = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  TOPA = [H]; rows.forEach((r, i) => {
+    const m = money(r), v = [+r.lot || 0, m.paid, m.due, m.ca, m.ccC, m.ccT, m.tc || 0, m.collect]; v.forEach((x, j) => T[5 + j] += x);
+    TOPA.push([i + 1, r.no, r.senderName + " " + r.senderPhone, r.receiverName + " " + r.receiverPhone, short(r.branch), ...v]);
+  });
+  TOPA.push(["", "Total (" + rows.length + ")", "", "", "", ...T.slice(5)]);
+  const day = tbook(), inc = ALL.filter(toMe).filter(r => isDel(r) && dkey(r.dtime) === tkey());
+  let cb = 0, cc = 0, it = 0, ic = 0, nt = 0, nc = 0;
+  day.forEach(r => { const m = money(r); cb += m.paid; cc += m.ccC; });
+  inc.forEach(r => { const m = money(r); if (m.due > 0) { it += m.due; nt++; } if (m.tc) { ic += m.tc; nc++; } });
+  TOPS = [["Cash Booking Taka (" + day.filter(r => money(r).paid > 0).length + " টি)", cb], ["Condition Cash Taka (Cash কন্ডিশন চার্জ)", cc], ["Incoming To Pay Delivery Taka (" + nt + " টি)", it], ["Incoming Condition To Pay Taka (" + nc + " টি)", ic], ["Total", cb + cc + it + ic]];
+  const sb = $("tsum"); sb.textContent = ""; TOPS.forEach(r => sb.appendChild(mkTr([r[0], "\u09F3" + r[1]]))); sb.lastChild.style.fontWeight = "700";
+  const t = $("ttbl"); t.textContent = ""; const hd = document.createElement("thead"), tr0 = document.createElement("tr");
+  H.forEach(h => { const th = document.createElement("th"); th.textContent = h; tr0.appendChild(th); }); hd.appendChild(tr0); t.appendChild(hd);
+  const tb = document.createElement("tbody"); TOPA.slice(1).forEach(r => tb.appendChild(mkTr(r))); if (rows.length) tb.lastChild.style.fontWeight = "700"; t.appendChild(tb);
+  $("tcap").textContent = rows.length ? "সর্বশেষ বুকিং এর ডেটা থেকে। Collect at Delivery = To Pay + Total Condition (কন্ডিশন + To Pay কন্ডিশন চার্জ)। টাকার হিসাবে Incoming মানে এই তারিখে আপনার শাখায় ডেলিভারি হওয়া মাল।" : "এই তারিখে কোনো বুকিং নেই।";
+}
+function printTop() {
+  const w = window.open("", "_blank"); if (!w) { alert("Pop-up allow করুন।"); return; }
+  const esc = x => String(x).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  w.document.write("<html><head><meta charset='utf-8'><title>Top Sheet</title><style>body{font:11px sans-serif;margin:12px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #444;padding:3px 5px;text-align:left}tr:last-child{font-weight:bold}</style></head><body><h3>Top Sheet: " + esc(ME.name) + " | " + esc(tkey()) + " | " + esc($("tpb").value ? short($("tpb").value) : "সব শাখা") + "</h3><table>" + TOPA.map((r, i) => "<tr>" + r.map(c => (i ? "<td>" : "<th>") + esc(c) + (i ? "</td>" : "</th>")).join("") + "</tr>").join("") + "</table><h3>টাকার হিসাব (দিনের মোট, সব শাখা)</h3><table>" + TOPS.map(r => "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>").join("") + "</table></body></html>");
+  w.document.close(); w.focus(); w.print();
+}
+$("nvTop").onclick = goTop; $("tgo").onclick = fillTopBr; $("tpd").addEventListener("change", fillTopBr); $("tpb").addEventListener("change", renderTop);
+$("tpr").onclick = printTop; $("tdl").onclick = () => dl("topsheet-" + ME.name + "-" + $("tpd").value + ".csv", [...TOPA, [], ["টাকার হিসাব (দিনের মোট, সব শাখা)"], ...TOPS]);
 
 const lockEl = $("lock");
 function showLock(msg) { lockEl.style.display = "flex"; $("lerr").textContent = msg || ""; $("pin").value = ""; ($("uid").value ? $("pin") : $("uid")).focus(); }
@@ -752,9 +802,10 @@ $("f").addEventListener("submit", async e => {
 function money(d) {
   const n = x => Math.round(+x || 0), cond = d.condition === "হ্যাঁ", cash = d.pay === "Cash", ccCash = d.ccPay === "Cash";
   const carry = n(d.taka), vat = n(d.vat), ca = cond ? n(d.condAmt) : 0, cc = cond ? n(d.condChg) : 0;
-  const paid = (cash ? carry + vat : 0) + (ccCash ? cc : 0), due = (cash ? 0 : carry + vat) + (ccCash ? 0 : cc);
+  const paid = cash ? carry + vat : 0, due = cash ? 0 : carry + vat;
   return { ca, ccC: ccCash ? cc : 0, ccT: ccCash ? 0 : cc, tc: cond ? ca + (ccCash ? 0 : cc) : null,
-    carC: cash ? carry : 0, carT: cash ? 0 : carry, vat, paid, due, total: paid + due };
+    carC: cash ? carry : 0, carT: cash ? 0 : carry, vat, paid, due, total: paid + due,
+    collect: due + (cond ? ca + (ccCash ? 0 : cc) : 0), cashIn: paid + (ccCash ? cc : 0) };
 }
 function words(n) {
   if (n === 0) return "zero";
