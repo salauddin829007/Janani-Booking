@@ -13,6 +13,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Benga
 #side{width:200px;background:#fff;border-right:1px solid var(--line);padding:14px 10px;flex-shrink:0}
 #side .brand{font-weight:700;color:var(--navy);padding:6px 10px 14px;font-size:16px}
 .nv{display:block;width:100%;text-align:left;border:0;background:none;padding:11px 12px;border-radius:6px;font:inherit;font-size:15px;color:#444;cursor:pointer;margin-bottom:2px}
+.lbl{padding:12px 12px 4px;font-size:12px;font-weight:700;letter-spacing:.6px;color:var(--muted)}
 .nv:hover{background:#f1f4fa}.nv.on{background:#e4ebfa;color:var(--navy);font-weight:600}
 main{flex:1;min-width:0;padding:20px 20px 48px}
 #vForm{max-width:760px;margin:0 auto}
@@ -95,12 +96,14 @@ table.tbl .dbtn{margin-right:4px}
 <nav id="side"><div class="brand">Salauddin Parcel Service</div><div id="meName" style="padding:0 10px 10px;font-size:13px;color:var(--muted)"></div>
 <button class="nv" id="nvDash" type="button">Dashboard</button>
 <button class="nv" id="nvList" type="button">Booking List</button>
-<button class="nv" id="nvAdd" type="button">+ Add Booking</button>
 <button class="nv" id="nvDel" type="button">Delivery Stock List</button>
 <button class="nv" id="nvDone" type="button">Delivery List</button>
 <button class="nv" id="nvMon" type="button" style="display:none">Monthly Top Sheet</button>
 <button class="nv" id="nvRep" type="button" style="display:none">Daily Report</button>
-<button class="nv" id="nvAdm" type="button" style="display:none">Admin Panel</button>
+<div class="lbl" id="aLbl" style="display:none">ADMIN PANEL</div>
+<button class="nv" id="nvAdm" type="button" style="display:none">Booking List</button>
+<button class="nv" id="nvAStk" type="button" style="display:none">Delivery Stock List</button>
+<button class="nv" id="nvADel" type="button" style="display:none">Delivery List</button>
 <button class="nv" id="nvUsr" type="button" style="display:none">Branches &amp; Login</button>
 <button class="nv" id="lockBtn" type="button" title="Logout" aria-label="Logout">&#128274; Logout</button></nav>
 <main>
@@ -118,7 +121,7 @@ table.tbl .dbtn{margin-right:4px}
   <div class="tw"><table class="tbl"><thead id="dhead"></thead><tbody id="dlist"></tbody></table></div>
 </section>
 <section id="vAdm" style="display:none">
-  <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Admin Panel</h1>
+  <h1 id="atitle" style="text-align:left;font-size:20px;margin:0 0 12px">All Booking List</h1>
   <div class="flt">
     <div><label for="fd1">From</label><input id="fd1" type="date"></div>
     <div><label for="fd2">To</label><input id="fd2" type="date"></div>
@@ -340,7 +343,7 @@ async function renderDash() {
   const j = await api({ action: "dash" }), D = j.ok ? j.D : null;
   if (!D) $("dcap").textContent = "হিসাব আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
   const groups = D ? [
-    ["আজকের", [["Cash Booking", rs + D.tcb], ["To Pay Booking", rs + D.ttp]]],
+    ["আজকের", [["Cash Booking", rs + D.tcb], ["To Pay Delivery", rs + D.ttd]]],
     ["Undelivered", [["CN", D.pn], ["টাকা (To Pay)", rs + D.pa]]],
     ["এই মাসের", [["Cash Booking", rs + D.mcb], ["To Pay Booking", rs + D.mtp], ["To Pay Delivery", rs + D.mtd]]]] : [];
   const box = $("cards"); box.textContent = "";
@@ -414,17 +417,17 @@ const VIEWS = { dash: "vDash", list: "vList", form: "vForm", del: "vDel", rep: "
 function show(v, nav) {
   $("meName").textContent = ME.role === "admin" ? "অ্যাডমিন" : ME.name ? "শাখা: " + ME.name : ""; applyRole();
   for (const k in VIEWS) $(VIEWS[k]).style.display = k === v ? "" : "none";
-  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvMon", "nvRep", "nvAdm", "nvUsr"].forEach(i => $(i).classList.toggle("on", i === nav)); scrollTo(0, 0);
+  ["nvDash", "nvList", "nvDel", "nvDone", "nvMon", "nvRep", "nvAdm", "nvAStk", "nvADel", "nvUsr"].forEach(i => $(i).classList.toggle("on", i === nav)); scrollTo(0, 0);
 }
 async function goDash() {
   show("dash", "nvDash"); $("dtitle").textContent = "Booking " + ME.name; $("dcap").textContent = "লোড হচ্ছে...";
   if (await loadAll()) renderDash(); else $("dcap").textContent = "ডেটা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
 }
 function goList() { show("list", "nvList"); loadList(); }
-function goForm() { show("form", "nvAdd"); $("done").style.display = "none"; $("sp").focus(); }
+function goForm() { show("form", "nvList"); $("done").style.display = "none"; $("sp").focus(); }
 $("addBtn").onclick = goForm; $("refBtn").onclick = loadList; $("backBtn").onclick = goList; $("toList").onclick = goList; $("q").addEventListener("input", renderList);
 $("nvDel").onclick = () => goDel("pending"); $("nvDone").onclick = () => goDel("done"); $("dq").addEventListener("input", renderDel); $("dRef").onclick = () => goDel(DMODE);
-$("nvDash").onclick = goDash; $("nvList").onclick = goList; $("nvAdd").onclick = goForm;
+$("nvDash").onclick = goDash; $("nvList").onclick = goList;
 
 // ================= অ্যাডমিন প্যানেল =================
 const ST = r => r.status === DELIVERED ? ["Delivered", "pill svc"] : r.status === "বাতিল" ? ["Cancelled", "pill topay"] : ["Booked", "pill cash"];
@@ -440,8 +443,8 @@ async function api(body) {
 function home() { if (ME.role === "admin") goAdm(); else goDash(); }
 function applyRole() {
   const a = ME.role === "admin";
-  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone"].forEach(i => $(i).style.display = a ? "none" : "");
-  ["nvAdm", "nvUsr", "nvMon"].forEach(i => $(i).style.display = a ? "" : "none");
+  ["nvDash", "nvList", "nvDel", "nvDone"].forEach(i => $(i).style.display = a ? "none" : ""); $("aLbl").style.display = a ? "" : "none";
+  ["nvAdm", "nvAStk", "nvADel", "nvUsr", "nvMon"].forEach(i => $(i).style.display = a ? "" : "none");
 }
 const tdy = () => { const t = new Date(); return t.getFullYear() + "-" + p2(t.getMonth() + 1) + "-" + p2(t.getDate()); };
 const mkCard = (l, v) => {
@@ -463,9 +466,15 @@ function fillFilter(sel) {
   }
 }
 let ADM_INIT = false, ADM = [];
-function goAdm() {
-  show("adm", "nvAdm");
-  if (!ADM_INIT) { ADM_INIT = true; fillFilter($("ffrom")); fillFilter($("fto")); $("e_br").innerHTML = $("br").innerHTML; $("fd1").value = $("fd2").value = tdy(); }
+let AMODE = "all";
+function goAdm(mode) {
+  AMODE = typeof mode === "string" ? mode : "all";
+  show("adm", { all: "nvAdm", stock: "nvAStk", done: "nvADel" }[AMODE]);
+  if (!ADM_INIT) { ADM_INIT = true; fillFilter($("ffrom")); fillFilter($("fto")); $("e_br").innerHTML = $("br").innerHTML; }
+  $("fd1").value = $("fd2").value = $("fq").value = ""; $("ffrom").value = $("fto").value = "";
+  $("fst").value = AMODE === "stock" ? "pending" : AMODE === "done" ? "delivered" : "";
+  $("fby").value = AMODE === "done" ? "delivery" : "";
+  $("atitle").textContent = { all: "All Booking List (All Branches)", stock: "All Delivery Stock List (All Branches)", done: "All Delivery List (All Branches)" }[AMODE];
   loadAdm();
 }
 async function loadAdm() {
@@ -576,9 +585,9 @@ async function toggleUser(u, on) {
   const j = await api({ action: "admin_user_set", code: u[0], active: on });
   if (j.ok) goUsr(); else alert(ERRS[j.error] || "হয়নি, আবার চেষ্টা করুন।");
 }
-$("nvAdm").onclick = goAdm; $("nvUsr").onclick = goUsr; $("fgo").onclick = loadAdm;
+$("nvAdm").onclick = () => goAdm("all"); $("nvAStk").onclick = () => goAdm("stock"); $("nvADel").onclick = () => goAdm("done"); $("nvUsr").onclick = goUsr; $("fgo").onclick = loadAdm;
 $("ftd").onclick = () => { $("fd1").value = $("fd2").value = tdy(); loadAdm(); };
-$("fall").onclick = () => { $("fd1").value = $("fd2").value = $("fq").value = $("fst").value = $("fby").value = ""; $("ffrom").value = $("fto").value = ""; loadAdm(); };
+$("fall").onclick = () => goAdm(AMODE);
 $("fq").addEventListener("keydown", e => { if (e.key === "Enter") loadAdm(); });
 $("uq").addEventListener("input", renderUsr); $("eCancel").onclick = () => { $("edm").style.display = "none"; }; $("uCancel").onclick = () => { $("udm").style.display = "none"; };
 
