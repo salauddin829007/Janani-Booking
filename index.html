@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>পার্সেল বুকিং - জননী এক্সপ্রেস</title>
+<title>Salauddin Booking</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#1c2433;--muted:#6b7385;--line:#cfd5e0;--bg:#f4f6fa;--navy:#222f46;--ok:#1b7a43}
@@ -90,16 +90,16 @@ table.tbl .dbtn{margin-right:4px}
 </style>
 </head>
 <body>
-<div id="lock"><form id="lf"><h2>জননী এক্সপ্রেস</h2><p>ID ও Password দিয়ে প্রবেশ করুন</p><input id="uid" type="text" autocomplete="off" autocapitalize="off" placeholder="ID" aria-label="ID"><input id="pin" type="password" autocomplete="off" placeholder="Password" aria-label="Password"><div class="err" id="lerr" role="alert"></div><button class="main" type="submit">প্রবেশ করুন</button><button type="button" id="trkBtn" class="dbtn" style="margin-top:10px;width:100%">মাল ট্র্যাক করুন (CN)</button></form></div>
+<div id="lock"><form id="lf"><h2>Salauddin Parcel Service</h2><p>ID ও Password দিয়ে প্রবেশ করুন</p><input id="uid" type="text" autocomplete="off" autocapitalize="off" placeholder="ID" aria-label="ID"><input id="pin" type="password" autocomplete="off" placeholder="Password" aria-label="Password"><div class="err" id="lerr" role="alert"></div><button class="main" type="submit">প্রবেশ করুন</button><button type="button" id="trkBtn" class="dbtn" style="margin-top:10px;width:100%">মাল ট্র্যাক করুন (CN)</button></form></div>
 <div class="app">
-<nav id="side"><div class="brand">জননী এক্সপ্রেস</div><div id="meName" style="padding:0 10px 10px;font-size:13px;color:var(--muted)"></div>
+<nav id="side"><div class="brand">Salauddin Parcel Service</div><div id="meName" style="padding:0 10px 10px;font-size:13px;color:var(--muted)"></div>
 <button class="nv" id="nvDash" type="button">Dashboard</button>
 <button class="nv" id="nvList" type="button">Booking List</button>
 <button class="nv" id="nvAdd" type="button">+ Add Booking</button>
 <button class="nv" id="nvDel" type="button">Delivery List</button>
 <button class="nv" id="nvDone" type="button">Delivered List</button>
 <button class="nv" id="nvTop" type="button">Top Sheet</button>
-<button class="nv" id="nvRep" type="button">Daily Report</button>
+<button class="nv" id="nvRep" type="button" style="display:none">Daily Report</button>
 <button class="nv" id="nvAdm" type="button" style="display:none">Admin Panel</button>
 <button class="nv" id="nvUsr" type="button" style="display:none">Branches &amp; Login</button>
 <button class="nv" id="lockBtn" type="button" title="Logout" aria-label="Logout">&#128274; Logout</button></nav>
@@ -134,10 +134,15 @@ table.tbl .dbtn{margin-right:4px}
 </section>
 <section id="vTop" style="display:none">
   <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Top Sheet</h1>
-  <div class="flt"><div><label for="tpd">Date</label><input id="tpd" type="date"></div><div><label for="tpb">Branch</label><select id="tpb"></select></div>
+  <div class="flt"><div><label for="tpd">Date</label><input id="tpd" type="date"></div><div id="tpBrW" style="display:none"><label for="tpb">Branch</label><select id="tpb"></select></div>
     <div class="fb"><button class="dbtn ok" id="tgo" type="button">Show</button><button class="dbtn" id="tpr" type="button">Print</button><button class="dbtn" id="tdl" type="button">Download Excel</button></div></div>
-  <div class="tw"><table class="tbl" id="ttbl"></table></div>
-  <h2 style="font-size:16px;margin:14px 0 6px">টাকার হিসাব (দিনের মোট, সব শাখা)</h2><div class="tw"><table class="tbl"><tbody id="tsum"></tbody></table></div><div id="tcap"></div>
+  <div class="tw" style="margin-bottom:14px"><table class="tbl"><tbody id="tsum"></tbody></table></div>
+  <h2 style="font-size:16px;margin:6px 0">Cash Booking (আজকের বুকিং, Cash ক্যারিং)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>CN</th><th>Receiver</th><th>To</th><th>Charge Type</th><th>Paid</th></tr></thead><tbody id="tb1"></tbody></table></div>
+  <h2 style="font-size:16px;margin:6px 0">To Pay Delivery (আমার শাখায় আসা মাল, আজ ডেলিভারি)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Delivered Time</th><th>CN</th><th>Receiver</th><th>From</th><th>To Pay</th></tr></thead><tbody id="tb2"></tbody></table></div>
+  <h2 style="font-size:16px;margin:6px 0">Condition Cash (sender টাকা নিয়ে গেছে)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Paid Time</th><th>CN</th><th>Receiver</th><th>To</th><th>Condition Taka</th><th>Charge</th><th>Undo</th></tr></thead><tbody id="tb3"></tbody></table></div>
+  <h2 style="font-size:16px;margin:6px 0">Incoming Condition To Pay (আমার শাখায় আসা কন্ডিশন মাল, ক্যারিং)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Delivered Time</th><th>CN</th><th>Receiver</th><th>From</th><th>To Pay</th></tr></thead><tbody id="tb4"></tbody></table></div>
+  <h2 style="font-size:16px;margin:6px 0">Condition টাকা দেওয়া বাকি (receiver মাল পেয়েছে, sender এখনো টাকা নেয়নি)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Delivered Time</th><th>CN</th><th>Receiver</th><th>To</th><th>Condition Taka</th><th>Charge</th><th>Action</th></tr></thead><tbody id="tb5"></tbody></table></div>
+  <div id="tcap"></div>
 </section>
 <section id="vRep" style="display:none">
   <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Daily Report</h1>
@@ -392,12 +397,12 @@ function renderDel() {
     const ac = document.createElement("td"), bt = document.createElement("button");
     bt.type = "button"; bt.className = "dbtn" + (done ? "" : " ok"); bt.textContent = done ? "Undo" : "Delivered";
     bt.onclick = () => done ? setDelivered(r, false, bt) : openDv(r, bt); ac.appendChild(bt);
-    if (!done) { const wa = document.createElement("a"), tx = "জননী এক্সপ্রেস: আপনার মাল (CN " + r.no + ") " + ME.name + " শাখায় এসেছে। ডেলিভারির সময় দিতে হবে \u09F3" + m.collect + "। অনুগ্রহ করে নিয়ে যান।"; wa.className = "dbtn"; wa.target = "_blank"; wa.rel = "noopener"; wa.textContent = "WhatsApp"; wa.href = "https://wa.me/88" + r.receiverPhone + "?text=" + encodeURIComponent(tx); ac.appendChild(wa); }
+    if (!done) { const wa = document.createElement("a"), tx = "Salauddin Parcel Service: আপনার মাল (CN " + r.no + ") " + ME.name + " শাখায় এসেছে। ডেলিভারির সময় দিতে হবে \u09F3" + m.collect + "। অনুগ্রহ করে নিয়ে যান।"; wa.className = "dbtn"; wa.target = "_blank"; wa.rel = "noopener"; wa.textContent = "WhatsApp"; wa.href = "https://wa.me/88" + r.receiverPhone + "?text=" + encodeURIComponent(tx); ac.appendChild(wa); }
     else if (r.proof) { const pa = document.createElement("a"); pa.className = "dbtn"; pa.target = "_blank"; pa.rel = "noopener"; pa.textContent = "ছবি"; pa.href = r.proof; ac.appendChild(pa); }
     tr.appendChild(ac); box.appendChild(tr);
   });
 }
-let LASTERR = "";
+let LASTERR = "", LASTJ = {};
 async function setDelivered(r, flag, btn, extra) {
   btn = btn || {}; LASTERR = "";
   if (!extra && !confirm(r.no + (flag ? " ডেলিভারি হয়েছে বলে চিহ্নিত করবেন?" : " আবার ডেলিভারি বাকি করবেন?"))) return;
@@ -406,7 +411,7 @@ async function setDelivered(r, flag, btn, extra) {
     if (SCRIPT_URL) {
       const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "status", no: r.no, delivered: flag, pin: store.get("pin", ""), ...(extra || {}) }) });
       const j = await res.json();
-      if (!j.ok) { LASTERR = j.error; if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw new Error("x"); }
+      if (!j.ok) { LASTERR = j.error; LASTJ = j; if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw new Error("x"); }
       r.dtime = flag ? j.time : ""; r.proof = flag ? (j.proof || "") : ""; r.note = flag && extra ? extra.note : "";
       if (flag && j.proofErr) alert("ডেলিভারি সেভ হয়েছে, কিন্তু ছবি সেভ হয়নি। Apps Script এ Drive এর অনুমতি দিন (Deploy এর পর একবার Run করুন)।");
     } else {
@@ -451,7 +456,7 @@ async function api(body) {
 function home() { if (ME.role === "admin") goAdm(); else goDash(); }
 function applyRole() {
   const a = ME.role === "admin";
-  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvTop", "nvRep"].forEach(i => $(i).style.display = a ? "none" : "");
+  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone"].forEach(i => $(i).style.display = a ? "none" : "");
   ["nvAdm", "nvUsr"].forEach(i => $(i).style.display = a ? "" : "none");
 }
 const tdy = () => { const t = new Date(); return t.getFullYear() + "-" + p2(t.getMonth() + 1) + "-" + p2(t.getDate()); };
@@ -619,7 +624,7 @@ $("dvf").addEventListener("submit", async e => {
   const f = $("dv_ph").files[0]; $("dv_ok").disabled = true; $("dv_e").textContent = "সেভ হচ্ছে...";
   let photo = ""; try { if (f) photo = await shrink(f); } catch (x) { $("dv_e").textContent = "ছবি পড়া যায়নি, অন্য ছবি দিন।"; $("dv_ok").disabled = false; return; }
   const ok = await setDelivered(DVR, true, DVB, { photo, note: $("dv_nt").value.trim(), otp });
-  if (ok) $("dvm").style.display = "none"; else { $("dv_e").textContent = LASTERR === "OTP" ? "OTP ভুল, আবার দিন।" : "সেভ হয়নি, আবার চেষ্টা করুন।"; $("dv_ok").disabled = false; if (DVB) DVB.disabled = false; }
+  if (ok) $("dvm").style.display = "none"; else { $("dv_e").textContent = LASTERR === "OTP" ? "OTP ভুল, আবার দিন।" : LASTERR === "TIME" ? "এখন ডেলিভারির সময় নয়। সময়: " + LASTJ.from + " থেকে " + LASTJ.to : "সেভ হয়নি, আবার চেষ্টা করুন।"; $("dv_ok").disabled = false; if (DVB) DVB.disabled = false; }
 });
 $("dvC").onclick = () => { $("dvm").style.display = "none"; };
 // ----- Excel (CSV) ডাউনলোড -----
@@ -673,47 +678,55 @@ $("tf").addEventListener("submit", async e => {
 });
 $("t_res").style.whiteSpace = "pre-line";
 
-// ----- Top Sheet (শাখা অনুযায়ী) -----
-let TOPA = [], TOPS = [];
+// ----- Top Sheet (প্রতিটি শাখার নিজস্ব; অ্যাডমিন শাখা বেছে দেখবে) -----
+let TOPA = [], TOPN = "";
 const tkey = () => $("tpd").value.split("-").reverse().join("-");
-const tbook = () => ALL.filter(mine).filter(r => dkey(r.when) === tkey() && r.status !== "বাতিল");
 async function goTop() {
-  show("top", "nvTop"); if (!$("tpd").value) $("tpd").value = tdy(); $("tcap").textContent = "লোড হচ্ছে...";
-  if (await loadAll()) fillTopBr(); else $("tcap").textContent = "ডেটা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+  show("top", "nvTop"); if (!$("tpd").value) $("tpd").value = tdy();
+  const adm = ME.role === "admin"; $("tpBrW").style.display = adm ? "" : "none";
+  if (adm && !$("tpb").options.length) {
+    const j = await api({ action: "admin_users" });
+    if (j.ok) j.rows.filter(u => u[0] !== "ADMIN").forEach(u => { const o = document.createElement("option"); o.value = u[0]; o.textContent = u[1] + " [" + u[0] + "]"; $("tpb").appendChild(o); });
+  }
+  renderTop();
 }
-function fillTopBr() {
-  const cur = $("tpb").value, sel = $("tpb"); sel.textContent = "";
-  const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "সব শাখা"; sel.appendChild(o0);
-  [...new Set(tbook().map(r => r.branch))].sort().forEach(b => { const o = document.createElement("option"); o.value = b; o.textContent = short(b); sel.appendChild(o); });
-  sel.value = [...sel.options].some(o => o.value === cur) ? cur : ""; renderTop();
-}
-function renderTop() {
-  const b = $("tpb").value, rows = tbook().filter(r => !b || r.branch === b).sort((x, y) => x.branch.localeCompare(y.branch) || x.no.localeCompare(y.no));
-  const H = ["SL", "CN", "Sender", "Receiver", "To", "Lot", "Paid", "To Pay", "Condition", "Cond. Chg (Cash)", "Cond. Chg (To Pay)", "Total Condition", "Collect at Delivery"], T = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  TOPA = [H]; rows.forEach((r, i) => {
-    const m = money(r), v = [+r.lot || 0, m.paid, m.due, m.ca, m.ccC, m.ccT, m.tc || 0, m.collect]; v.forEach((x, j) => T[5 + j] += x);
-    TOPA.push([i + 1, r.no, r.senderName + " " + r.senderPhone, r.receiverName + " " + r.receiverPhone, short(r.branch), ...v]);
-  });
-  TOPA.push(["", "Total (" + rows.length + ")", "", "", "", ...T.slice(5)]);
-  const day = tbook(), inc = ALL.filter(toMe).filter(r => isDel(r) && dkey(r.dtime) === tkey());
-  let cb = 0, cc = 0, it = 0, ic = 0, nt = 0, nc = 0;
-  day.forEach(r => { const m = money(r); cb += m.paid; cc += m.ccC; });
-  inc.forEach(r => { const m = money(r); if (m.due > 0) { it += m.due; nt++; } if (m.tc) { ic += m.tc; nc++; } });
-  TOPS = [["Cash Booking Taka (" + day.filter(r => money(r).paid > 0).length + " টি)", cb], ["Condition Cash Taka (Cash কন্ডিশন চার্জ)", cc], ["Incoming To Pay Delivery Taka (" + nt + " টি)", it], ["Incoming Condition To Pay Taka (" + nc + " টি)", ic], ["Total", cb + cc + it + ic]];
-  const sb = $("tsum"); sb.textContent = ""; TOPS.forEach(r => sb.appendChild(mkTr([r[0], "\u09F3" + r[1]]))); sb.lastChild.style.fontWeight = "700";
-  const t = $("ttbl"); t.textContent = ""; const hd = document.createElement("thead"), tr0 = document.createElement("tr");
-  H.forEach(h => { const th = document.createElement("th"); th.textContent = h; tr0.appendChild(th); }); hd.appendChild(tr0); t.appendChild(hd);
-  const tb = document.createElement("tbody"); TOPA.slice(1).forEach(r => tb.appendChild(mkTr(r))); if (rows.length) tb.lastChild.style.fontWeight = "700"; t.appendChild(tb);
-  $("tcap").textContent = rows.length ? "সর্বশেষ বুকিং এর ডেটা থেকে। Collect at Delivery = To Pay + Total Condition (কন্ডিশন + To Pay কন্ডিশন চার্জ)। টাকার হিসাবে Incoming মানে এই তারিখে আপনার শাখায় ডেলিভারি হওয়া মাল।" : "এই তারিখে কোনো বুকিং নেই।";
+async function renderTop() {
+  const adm = ME.role === "admin"; $("tcap").textContent = "লোড হচ্ছে...";
+  const j = await api({ action: "top", date: $("tpd").value, code: adm ? $("tpb").value : "" });
+  if (!j.ok) { $("tcap").textContent = "ডেটা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।"; return; }
+  const T = j.T, tk = "\u09F3"; TOPN = adm ? ($("tpb").selectedOptions[0] || {}).textContent || "" : ME.name;
+  const cp = async (no, undo) => {
+    if (!confirm(no + (undo ? " এর টাকা দেওয়া বাতিল করবেন?" : " এর কন্ডিশন টাকা sender কে দেওয়া হয়েছে?"))) return;
+    const r = await api({ action: "condpay", no, undo: !!undo });
+    if (r.ok) renderTop(); else alert(r.error === "NOTYET" ? "মাল এখনো ডেলিভারি হয়নি।" : "হয়নি, আবার চেষ্টা করুন।");
+  };
+  const sum = [
+    ["আজকের Cash Booking Taka (" + T.cbn + " টি)", T.cb],
+    ["আজকের To Pay Delivery Taka: আমার শাখায় আসা মালের ক্যারিং (" + T.tdn + " টি)", T.td],
+    ["আজকের Condition Cash Taka: sender টাকা নিয়ে গেছে (" + T.ccn + " টি)", T.cc],
+    ["আজকের Incoming Condition To Pay: আমার শাখায় আসা কন্ডিশন মালের ক্যারিং, receiver মাল পেয়েছে (" + T.icn + " টি)", T.ic]];
+  const total = T.cb + T.td + T.cc + T.ic;
+  const fill = (id, list) => { const b = $(id); b.textContent = ""; list.forEach(c => b.appendChild(mkTr(c))); };
+  fill("tsum", [...sum.map(r => [r[0], tk + r[1]]), ["বাকি: Condition টাকা sender কে এখনো দেওয়া হয়নি (" + T.pn + " টি), শুধু তথ্য, মোটে যোগ হয়নি", tk + T.pa], ["মোট (Cash Booking + To Pay Delivery + Condition Cash + Incoming Condition To Pay)", tk + total]]); $("tsum").lastChild.style.fontWeight = "700";
+  fill("tb1", T.booked.map(r => [[r[0], "pill cn"], r[1], short(r[2]), r[3], tk + r[4]]));
+  fill("tb2", T.deliv.map(r => [r[0], [r[1], "pill cn"], r[2], r[3], tk + r[4]]));
+  fill("tb3", T.condc.map(r => [r[0], [r[1], "pill cn"], r[2], short(r[3]), tk + r[4], r[5], adm ? "" : mkBtn("Undo", "dbtn", () => cp(r[1], true))]));
+  fill("tb4", T.incond.map(r => [r[0], [r[1], "pill cn"], r[2], r[3], tk + r[4]]));
+  fill("tb5", T.pend.map(r => [r[4], [r[0], "pill cn"], r[1], short(r[2]), tk + r[3], r[5], adm ? "" : mkBtn("টাকা দেওয়া হয়েছে", "dbtn ok", () => cp(r[0], false))]));
+  TOPA = [["Top Sheet", TOPN, tkey()], ...sum, ["Pending Condition Taka", T.pa], ["Total", total], [], ["Cash Booking (CN, Receiver, To, Charge Type, Paid)"], ...T.booked,
+    [], ["To Pay Delivery (Time, CN, Receiver, From, To Pay)"], ...T.deliv, [], ["Condition Cash (Paid Time, CN, Receiver, To, Condition Taka, Charge Type)"], ...T.condc,
+    [], ["Incoming Condition To Pay (Time, CN, Receiver, From, To Pay)"], ...T.incond, [], ["Condition Taka Pending (CN, Receiver, To, Condition Taka, Delivered Time, Charge Type)"], ...T.pend];
+  $("tcap").textContent = "Cash Booking: বুকিং তারিখ। To Pay Delivery ও Incoming Condition To Pay: receiver মাল পাওয়ার (ডেলিভারির) তারিখ। Condition Cash: sender কে টাকা দেওয়ার তারিখ।";
 }
 function printTop() {
   const w = window.open("", "_blank"); if (!w) { alert("Pop-up allow করুন।"); return; }
   const esc = x => String(x).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-  w.document.write("<html><head><meta charset='utf-8'><title>Top Sheet</title><style>body{font:11px sans-serif;margin:12px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #444;padding:3px 5px;text-align:left}tr:last-child{font-weight:bold}</style></head><body><h3>Top Sheet: " + esc(ME.name) + " | " + esc(tkey()) + " | " + esc($("tpb").value ? short($("tpb").value) : "সব শাখা") + "</h3><table>" + TOPA.map((r, i) => "<tr>" + r.map(c => (i ? "<td>" : "<th>") + esc(c) + (i ? "</td>" : "</th>")).join("") + "</tr>").join("") + "</table><h3>টাকার হিসাব (দিনের মোট, সব শাখা)</h3><table>" + TOPS.map(r => "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>").join("") + "</table></body></html>");
+  w.document.write("<html><head><meta charset='utf-8'><title>Top Sheet</title><style>body{font:12px sans-serif;margin:12px}table{border-collapse:collapse;width:100%;margin-bottom:12px}td,th{border:1px solid #444;padding:3px 5px;text-align:left}</style></head><body><h3>Top Sheet: " + esc(TOPN) + " | " + esc(tkey()) + "</h3>" +
+    ["tsum", "tb1", "tb2", "tb3", "tb4"].map(id => "<table>" + (id === "tsum" ? "" : $(id).parentNode.querySelector("thead").outerHTML) + $(id).outerHTML.replace(/<button[^>]*>.*?<\/button>/g, "") + "</table>").join("") + "</body></html>");
   w.document.close(); w.focus(); w.print();
 }
-$("nvTop").onclick = goTop; $("tgo").onclick = fillTopBr; $("tpd").addEventListener("change", fillTopBr); $("tpb").addEventListener("change", renderTop);
-$("tpr").onclick = printTop; $("tdl").onclick = () => dl("topsheet-" + ME.name + "-" + $("tpd").value + ".csv", [...TOPA, [], ["টাকার হিসাব (দিনের মোট, সব শাখা)"], ...TOPS]);
+$("nvTop").onclick = goTop; $("tgo").onclick = renderTop; $("tpd").addEventListener("change", renderTop); $("tpb").addEventListener("change", renderTop);
+$("tpr").onclick = printTop; $("tdl").onclick = () => dl("topsheet-" + TOPN + "-" + $("tpd").value + ".csv", TOPA);
 
 const lockEl = $("lock");
 function showLock(msg) { lockEl.style.display = "flex"; $("lerr").textContent = msg || ""; $("pin").value = ""; ($("uid").value ? $("pin") : $("uid")).focus(); }
@@ -779,7 +792,7 @@ $("f").addEventListener("submit", async e => {
     if (SCRIPT_URL) {
       const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ ...d, pin: store.get("pin", "") }) });
       const j = await r.json();
-      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw new Error(j.error || "সমস্যা"); }
+      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw Object.assign(new Error(j.error || "সমস্যা"), { j }); }
       no = j.no;
     } else {
       const n = store.get("counter", 0) + 1; store.set("counter", n);
@@ -787,7 +800,7 @@ $("f").addEventListener("submit", async e => {
       const all = store.get("bookings", []); all.push({ no, when: nowStr(), fromName: ME.name, fromCode: ME.code, ...d }); store.set("bookings", all);
     }
   } catch (x) {
-    $("err").textContent = "বুকিং সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+    $("err").textContent = x.j && x.j.error === "TIME" ? "এখন বুকিং এর সময় নয়। সময়: " + x.j.from + " থেকে " + x.j.to : "বুকিং সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
     $("go").disabled = false; $("go").textContent = "বুকিং সেভ করুন"; return;
   }
   const s = store.get("senders", {}); s[d.senderPhone] = d.senderName; store.set("senders", s);
