@@ -96,9 +96,8 @@ table.tbl .dbtn{margin-right:4px}
 <button class="nv" id="nvDash" type="button">Dashboard</button>
 <button class="nv" id="nvList" type="button">Booking List</button>
 <button class="nv" id="nvAdd" type="button">+ Add Booking</button>
-<button class="nv" id="nvDel" type="button">Delivery List</button>
-<button class="nv" id="nvDone" type="button">Delivered List</button>
-<button class="nv" id="nvTop" type="button">Top Sheet</button>
+<button class="nv" id="nvDel" type="button">Delivery Stock List</button>
+<button class="nv" id="nvDone" type="button">Delivery List</button>
 <button class="nv" id="nvMon" type="button">Monthly Top Sheet</button>
 <button class="nv" id="nvRep" type="button" style="display:none">Daily Report</button>
 <button class="nv" id="nvAdm" type="button" style="display:none">Admin Panel</button>
@@ -112,7 +111,7 @@ table.tbl .dbtn{margin-right:4px}
   <div id="dcap"></div>
 </section>
 <section id="vDel" style="display:none">
-  <div class="head"><h1 id="delTitle">Delivery List</h1><button class="main" id="newDel" type="button">+ Create Delivery</button></div>
+  <div class="head"><h1 id="delTitle">Delivery Stock List</h1><button class="main" id="newDel" type="button">+ Create Delivery</button></div>
   <div class="bar"><input id="dq" type="text" placeholder="Search CN / Phone / Name" aria-label="Search"><button id="dRef" type="button" title="রিফ্রেশ" aria-label="রিফ্রেশ" style="border:1px solid var(--line);background:#fff;border-radius:6px;padding:0 14px;font-size:20px;cursor:pointer">&#8635;</button></div>
   <div id="dhelp" style="background:#fff8e1;border:1px solid #f0d98a;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px;line-height:1.6">কীভাবে ডেলিভারি করবেন: (১) প্রাপককে ফোন বা WhatsApp এ জানান (২) মাল দিয়ে Due টাকা বুঝে নিন (৩) <b>+ Create Delivery</b> এ CN দিয়ে খুঁজুন (বা সারির <b>Delivered</b> চাপুন), OTP দিয়ে নিশ্চিত করুন।</div>
   <div id="dcnt"></div>
@@ -139,15 +138,6 @@ table.tbl .dbtn{margin-right:4px}
     <div><label for="mop">Opening Balance (ঐচ্ছিক)</label><input id="mop" type="number" inputmode="numeric" placeholder="0"></div>
     <div class="fb"><button class="dbtn ok" id="mgo" type="button">Show</button><button class="dbtn" id="mpr" type="button">Print</button><button class="dbtn" id="mdl" type="button">Download Excel</button></div></div>
   <div class="tw"><table class="tbl" id="mtbl"><thead><tr><th>Date</th><th>Cash Booking</th><th>Incoming To Pay</th><th>Total</th></tr></thead><tbody id="mbody"></tbody></table></div><div id="mcap"></div>
-</section>
-<section id="vTop" style="display:none">
-  <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Top Sheet</h1>
-  <div class="flt"><div><label for="tpd">Date</label><input id="tpd" type="date"></div><div id="tpBrW" style="display:none"><label for="tpb">Branch</label><select id="tpb"></select></div>
-    <div class="fb"><button class="dbtn ok" id="tgo" type="button">Show</button><button class="dbtn" id="tpr" type="button">Print</button><button class="dbtn" id="tdl" type="button">Download Excel</button></div></div>
-  <div class="tw" style="margin-bottom:14px"><table class="tbl"><tbody id="tsum"></tbody></table></div>
-  <h2 style="font-size:16px;margin:6px 0">Cash Booking (আজকের বুকিং, Cash ক্যারিং)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>CN</th><th>Receiver</th><th>To</th><th>Charge Type</th><th>Paid</th></tr></thead><tbody id="tb1"></tbody></table></div>
-  <h2 style="font-size:16px;margin:6px 0">To Pay Delivery (আমার শাখায় আসা মাল, আজ ডেলিভারি)</h2><div class="tw" style="margin-bottom:14px"><table class="tbl"><thead><tr><th>Delivered Time</th><th>CN</th><th>Receiver</th><th>From</th><th>To Pay</th></tr></thead><tbody id="tb2"></tbody></table></div>
-  <div id="tcap"></div>
 </section>
 <section id="vRep" style="display:none">
   <h1 style="text-align:left;font-size:20px;margin:0 0 12px">Daily Report</h1>
@@ -374,7 +364,7 @@ let DMODE = "pending";
 function renderDel() {
   const done = DMODE === "done", q = $("dq").value.trim().toLowerCase();
   const rows = ALL.filter(toMe).filter(r => isDel(r) === done && (!q || [r.no, r.receiverPhone, r.receiverName, r.senderName, r.fromName].join(" ").toLowerCase().includes(q)));
-  $("dhelp").style.display = $("newDel").style.display = done ? "none" : ""; $("delTitle").textContent = done ? "Delivered List" : "Delivery List (Pending)";
+  $("dhelp").style.display = $("newDel").style.display = done ? "none" : ""; $("delTitle").textContent = done ? "Delivery List" : "Delivery Stock List";
   $("dcnt").textContent = (done ? "ডেলিভারি হয়েছে: " : "ডেলিভারি বাকি: ") + rows.length + " টি" + "";
   const hd = $("dhead"); hd.textContent = ""; const hr = document.createElement("tr");
   [done ? "Delivered Time" : "Booking Date", "CN", "Receiver", "Phone", "From", "Charge Type", "Due", "Delivery", "Action"].forEach(h => { const th = document.createElement("th"); th.textContent = h; hr.appendChild(th); });
@@ -387,7 +377,7 @@ function renderDel() {
     td(r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")); td("\u09F3" + m.due).className = "chg"; td(r.delivery, "pill svc");
     const ac = document.createElement("td"), bt = document.createElement("button");
     bt.type = "button"; bt.className = "dbtn" + (done ? "" : " ok"); bt.textContent = done ? "Undo" : "Delivered";
-    bt.onclick = () => done ? setDelivered(r, false, bt) : openDv(r, bt); ac.appendChild(bt);
+    bt.onclick = () => done ? setDelivered(r, false, bt) : openDv(r, bt); if (!done) ac.appendChild(bt);
     if (!done) { const wa = document.createElement("a"), tx = "Salauddin Parcel Service: আপনার মাল (CN " + r.no + ") " + ME.name + " শাখায় এসেছে। ডেলিভারির সময় দিতে হবে \u09F3" + m.due + "। অনুগ্রহ করে নিয়ে যান।"; wa.className = "dbtn"; wa.target = "_blank"; wa.rel = "noopener"; wa.textContent = "WhatsApp"; wa.href = "https://wa.me/88" + r.receiverPhone + "?text=" + encodeURIComponent(tx); ac.appendChild(wa); }
     else if (r.proof) { const pa = document.createElement("a"); pa.className = "dbtn"; pa.target = "_blank"; pa.rel = "noopener"; pa.textContent = "ছবি"; pa.href = r.proof; ac.appendChild(pa); }
     tr.appendChild(ac); box.appendChild(tr);
@@ -416,11 +406,11 @@ async function goDel(mode) {
   DMODE = mode; show("del", mode === "done" ? "nvDone" : "nvDel"); $("dcnt").textContent = "লোড হচ্ছে..."; $("dlist").textContent = "";
   if (await loadAll()) renderDel(); else $("dcnt").textContent = "তালিকা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
 }
-const VIEWS = { dash: "vDash", list: "vList", form: "vForm", del: "vDel", rep: "vRep", top: "vTop", mon: "vMon", adm: "vAdm", usr: "vUsr" };
+const VIEWS = { dash: "vDash", list: "vList", form: "vForm", del: "vDel", rep: "vRep", mon: "vMon", adm: "vAdm", usr: "vUsr" };
 function show(v, nav) {
   $("meName").textContent = ME.role === "admin" ? "অ্যাডমিন" : ME.name ? "শাখা: " + ME.name : ""; applyRole();
   for (const k in VIEWS) $(VIEWS[k]).style.display = k === v ? "" : "none";
-  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvTop", "nvMon", "nvRep", "nvAdm", "nvUsr"].forEach(i => $(i).classList.toggle("on", i === nav)); scrollTo(0, 0);
+  ["nvDash", "nvList", "nvAdd", "nvDel", "nvDone", "nvMon", "nvRep", "nvAdm", "nvUsr"].forEach(i => $(i).classList.toggle("on", i === nav)); scrollTo(0, 0);
 }
 async function goDash() {
   show("dash", "nvDash"); $("dtitle").textContent = "Booking " + ME.name; $("dcap").textContent = "লোড হচ্ছে...";
@@ -494,10 +484,15 @@ function renderAdm(j) {
     const m = money(r), canc = r.status === "বাতিল", ac = document.createElement("div");
     const pr = mkBtn("প্রিন্ট", "dbtn", () => printMemo(r)), ed = mkBtn("Edit", "dbtn", () => openEdit(r));
     const cn = mkBtn(canc ? "Restore" : "Cancel", "dbtn", () => cancelBk(r, !canc));
-    ac.append(pr, ed, cn);
+    ac.append(pr, ed, cn); if (isDel(r) && !canc) ac.append(mkBtn("Undo Delivery", "dbtn", () => undoDel(r)));
     const tr = mkTr([r.when, [r.no, "pill cn"], r.fromName, short(r.branch), r.receiverName + " (" + r.receiverPhone + ")", [r.pay, "pill " + (r.pay === "Cash" ? "cash" : "topay")], "\u09F3" + m.due, ST(r), ac]);
     if (canc) tr.style.opacity = ".55"; lb.appendChild(tr);
   });
+}
+async function undoDel(r) {
+  if (!confirm(r.no + " এর ডেলিভারি বাতিল করবেন? মাল আবার Delivery Stock List এ ফিরে যাবে।")) return;
+  const j = await api({ action: "status", no: r.no, delivered: false });
+  if (j.ok) loadAdm(); else alert(ERRS[j.error] || "হয়নি, আবার চেষ্টা করুন।");
 }
 async function cancelBk(r, flag) {
   if (!confirm(r.no + (flag ? " বুকিং বাতিল করবেন? (হিসাব থেকে বাদ যাবে)" : " বুকিং আবার চালু করবেন?"))) return;
@@ -664,41 +659,6 @@ $("tf").addEventListener("submit", async e => {
   } catch (x) { out.textContent = "ইন্টারনেট দেখে আবার চেষ্টা করুন।"; }
 });
 $("t_res").style.whiteSpace = "pre-line";
-
-// ----- Top Sheet (প্রতিটি শাখার নিজস্ব; অ্যাডমিন শাখা বেছে দেখবে) -----
-let TOPA = [], TOPN = "";
-const tkey = () => $("tpd").value.split("-").reverse().join("-");
-async function goTop() {
-  show("top", "nvTop"); if (!$("tpd").value) $("tpd").value = tdy();
-  const adm = ME.role === "admin"; $("tpBrW").style.display = adm ? "" : "none";
-  if (adm && !$("tpb").options.length) {
-    const j = await api({ action: "admin_users" });
-    if (j.ok) j.rows.filter(u => u[0] !== "ADMIN").forEach(u => { const o = document.createElement("option"); o.value = u[0]; o.textContent = u[1] + " [" + u[0] + "]"; $("tpb").appendChild(o); });
-  }
-  renderTop();
-}
-async function renderTop() {
-  const adm = ME.role === "admin"; $("tcap").textContent = "লোড হচ্ছে...";
-  const j = await api({ action: "top", date: $("tpd").value, code: adm ? $("tpb").value : "" });
-  if (!j.ok) { $("tcap").textContent = "ডেটা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।"; return; }
-  const T = j.T, tk = "\u09F3"; TOPN = adm ? ($("tpb").selectedOptions[0] || {}).textContent || "" : ME.name;
-  const sum = [["আজকের Cash Booking Taka (" + T.cbn + " টি)", T.cb], ["আজকের To Pay Delivery Taka: আমার শাখায় আসা মালের ক্যারিং (" + T.tdn + " টি)", T.td]], total = T.cb + T.td;
-  const fill = (id, list) => { const b = $(id); b.textContent = ""; list.forEach(c => b.appendChild(mkTr(c))); };
-  fill("tsum", [...sum.map(r => [r[0], tk + r[1]]), ["মোট (Cash Booking + To Pay Delivery)", tk + total]]); $("tsum").lastChild.style.fontWeight = "700";
-  fill("tb1", T.booked.map(r => [[r[0], "pill cn"], r[1], short(r[2]), r[3], tk + r[4]]));
-  fill("tb2", T.deliv.map(r => [r[0], [r[1], "pill cn"], r[2], r[3], tk + r[4]]));
-  TOPA = [["Top Sheet", TOPN, tkey()], ...sum, ["Total", total], [], ["Cash Booking (CN, Receiver, To, Charge Type, Paid)"], ...T.booked, [], ["To Pay Delivery (Time, CN, Receiver, From, To Pay)"], ...T.deliv];
-  $("tcap").textContent = "Cash Booking: বুকিং তারিখ। To Pay Delivery: receiver মাল পাওয়ার (ডেলিভারির) তারিখ।";
-}
-function printTop() {
-  const w = window.open("", "_blank"); if (!w) { alert("Pop-up allow করুন।"); return; }
-  const esc = x => String(x).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-  w.document.write("<html><head><meta charset='utf-8'><title>Top Sheet</title><style>body{font:12px sans-serif;margin:12px}table{border-collapse:collapse;width:100%;margin-bottom:12px}td,th{border:1px solid #444;padding:3px 5px;text-align:left}</style></head><body><h3>Top Sheet: " + esc(TOPN) + " | " + esc(tkey()) + "</h3>" +
-    ["tsum", "tb1", "tb2"].map(id => "<table>" + (id === "tsum" ? "" : $(id).parentNode.querySelector("thead").outerHTML) + $(id).outerHTML.replace(/<button[^>]*>.*?<\/button>/g, "") + "</table>").join("") + "</body></html>");
-  w.document.close(); w.focus(); w.print();
-}
-$("nvTop").onclick = goTop; $("tgo").onclick = renderTop; $("tpd").addEventListener("change", renderTop); $("tpb").addEventListener("change", renderTop);
-$("tpr").onclick = printTop; $("tdl").onclick = () => dl("topsheet-" + TOPN + "-" + $("tpd").value + ".csv", TOPA);
 
 // ----- Monthly Top Sheet -----
 let MONA = [], MONN = "";
