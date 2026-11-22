@@ -308,19 +308,21 @@ const p2 = x => String(x).padStart(2, "0");
 const fmtKey = d => p2(d.getDate()) + "-" + p2(d.getMonth() + 1) + "-" + d.getFullYear();
 const dkey = w => { let m = /^(\d{2})-(\d{2})-(\d{4})/.exec(w || ""); if (m) return m[1] + "-" + m[2] + "-" + m[3]; m = /^(\d{4})-(\d{2})-(\d{2})/.exec(w || ""); return m ? m[3] + "-" + m[2] + "-" + m[1] : ""; };
 
+function useCache() { const c = SCRIPT_URL ? store.get("c_all_" + ME.code, null) : null; if (!c) return false; ALL = c.ALL; TOTAL = c.TOTAL; return true; }
+function dropCache() { store.set("c_all_" + ME.code, null); store.set("c_dash_" + ME.code, null); }
 async function loadAll() {
   try {
     if (SCRIPT_URL) {
       const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "list", pin: store.get("pin", "") }) });
       const j = await r.json();
-      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); return false; }
-      ALL = j.rows.map(toRec); TOTAL = +j.total || 0;
+      if (!j.ok) { if (["PIN", "LOCKED", "DISABLED"].includes(j.error)) showLock("আবার ID ও Password দিন"); return false; }
+      ALL = j.rows.map(toRec); TOTAL = +j.total || 0; store.set("c_all_" + ME.code, { ALL, TOTAL });
     } else { ALL = store.get("bookings", []).slice().reverse(); TOTAL = ALL.length; }
     return true;
   } catch (e) { return false; }
 }
 async function loadList() {
-  $("cnt").textContent = "লোড হচ্ছে..."; $("list").textContent = "";
+  if (useCache()) renderList(); else {$("cnt").textContent = "লোড হচ্ছে..."; $("list").textContent = ""; }
   if (await loadAll()) renderList(); else $("cnt").textContent = "তালিকা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
 }
 function renderList() {
@@ -338,9 +340,9 @@ function renderList() {
     ac.appendChild(pb); tr.appendChild(ac); box.appendChild(tr);
   });
 }
-async function renderDash() {
+async function renderDash(pd) {
   const own = ALL.filter(mine), rs = "\u09F3"; $("dcap").textContent = "";
-  const j = await api({ action: "dash" }), D = j.ok ? j.D : null;
+  const j = await (pd || api({ action: "dash" })), D = j.ok ? j.D : null; if (D) store.set("c_dash_" + ME.code, D);
   if (!D) $("dcap").textContent = "হিসাব আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
   const groups = D ? [
     ["আজকের", [["Cash Booking", rs + D.tcb], ["To Pay Delivery", rs + D.ttd]]],
@@ -397,9 +399,9 @@ async function setDelivered(r, flag, btn, extra) {
   btn.disabled = true;
   try {
     if (SCRIPT_URL) {
-      const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "status", no: r.no, delivered: flag, pin: store.get("pin", ""), ...(extra || {}) }) });
+      const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "status", no: r.no, delivered: flag, pin: store.get("pin", ""), ...(extra || {}) }) }); dropCache();
       const j = await res.json();
-      if (!j.ok) { LASTERR = j.error; LASTJ = j; if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw new Error("x"); }
+      if (!j.ok) { LASTERR = j.error; LASTJ = j; if (["PIN", "LOCKED", "DISABLED"].includes(j.error)) showLock("আবার ID ও Password দিন"); throw new Error("x"); }
       r.dtime = flag ? j.time : ""; r.proof = flag ? (j.proof || "") : ""; r.note = flag && extra ? extra.note : "";
       if (flag && j.proofErr) alert("ডেলিভারি সেভ হয়েছে, কিন্তু ছবি সেভ হয়নি। Apps Script এ Drive এর অনুমতি দিন (Deploy এর পর একবার Run করুন)।");
     } else {
@@ -410,7 +412,7 @@ async function setDelivered(r, flag, btn, extra) {
   } catch (e) { btn.disabled = false; $("dcnt").textContent = "সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।"; return false; }
 }
 async function goDel(mode) {
-  DMODE = mode; show("del", mode === "done" ? "nvDone" : "nvDel"); $("dcnt").textContent = "লোড হচ্ছে..."; $("dlist").textContent = "";
+  DMODE = mode; show("del", mode === "done" ? "nvDone" : "nvDel"); if (useCache()) renderDel(); else { $("dcnt").textContent = "লোড হচ্ছে..."; $("dlist").textContent = ""; }
   if (await loadAll()) renderDel(); else $("dcnt").textContent = "তালিকা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
 }
 const VIEWS = { dash: "vDash", list: "vList", form: "vForm", del: "vDel", rep: "vRep", mon: "vMon", adm: "vAdm", usr: "vUsr" };
@@ -421,7 +423,9 @@ function show(v, nav) {
 }
 async function goDash() {
   show("dash", "nvDash"); $("dtitle").textContent = "Booking " + ME.name; $("dcap").textContent = "লোড হচ্ছে...";
-  if (await loadAll()) renderDash(); else $("dcap").textContent = "ডেটা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+  const pd = api({ action: "dash" });
+  { const cd = store.get("c_dash_" + ME.code, null); if (cd && useCache()) renderDash(Promise.resolve({ ok: true, D: cd })); }
+  if (await loadAll()) renderDash(pd); else $("dcap").textContent = "ডেটা আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
 }
 function goList() { show("list", "nvList"); loadList(); }
 function goForm() { show("form", "nvList"); $("done").style.display = "none"; $("sp").focus(); }
@@ -436,6 +440,7 @@ async function api(body) {
   try {
     const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ ...body, pin: store.get("pin", "") }) });
     const j = await r.json();
+    if (j.ok && body.action && !/^(admin_list|admin_users|dash|list|monthly|check)$/.test(body.action)) dropCache();
     if (!j.ok && ["PIN", "LOCKED", "DISABLED"].includes(j.error)) showLock("আবার ID ও Password দিন");
     return j;
   } catch (e) { return { ok: false, error: "NET" }; }
@@ -720,7 +725,7 @@ async function checkPin(p) {
 }
 if (SCRIPT_URL) {
   lockEl.style.display = "flex";
-  (async () => { const p = store.get("pin", ""); const j = p ? await checkPin(p) : {}; if (j.ok) { if (j.branch) { ME = Object.assign({}, j.branch, { role: j.role || "branch" }); store.set("me", ME); } lockEl.style.display = "none"; home(); } else showLock(); })();
+  (async () => { const p = store.get("pin", ""); if (p && store.get("me", null)) { lockEl.style.display = "none"; home(); } else showLock(); })();
 } else home();
 $("lf").addEventListener("submit", async e => {
   e.preventDefault(); const uid = $("uid").value.trim(), pw = $("pin").value; if (!uid || !pw) return; const p = uid + "|" + pw;
@@ -729,7 +734,7 @@ $("lf").addEventListener("submit", async e => {
   if (j.ok) { store.set("pin", p); if (j.branch) { ME = Object.assign({}, j.branch, { role: j.role || "branch" }); store.set("me", ME); } lockEl.style.display = "none"; home(); }
   else $("lerr").textContent = j.error === "LOCKED" ? "অনেকবার ভুল হয়েছে, ১০ মিনিট পরে চেষ্টা করুন।" : j.error === "NET" ? "ইন্টারনেট দেখুন, আবার চেষ্টা করুন।" : j.error === "DISABLED" ? "এই শাখা বন্ধ আছে। অ্যাডমিনের সাথে যোগাযোগ করুন।" : "ID বা Password ভুল।";
 });
-$("lockBtn").onclick = () => { store.set("pin", ""); store.set("me", null); if (SCRIPT_URL) showLock(); };
+$("lockBtn").onclick = () => { dropCache(); store.set("pin", ""); store.set("me", null); if (SCRIPT_URL) showLock(); };
 document.addEventListener("wheel", () => { const a = document.activeElement; if (a && a.type === "number") a.blur(); }, { passive: true });
 let last = null;
 const val = n => (document.querySelector('input[name="' + n + '"]:checked') || {}).value || "";
@@ -770,7 +775,7 @@ $("f").addEventListener("submit", async e => {
     if (SCRIPT_URL) {
       const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ ...d, pin: store.get("pin", "") }) });
       const j = await r.json();
-      if (!j.ok) { if (j.error === "PIN" || j.error === "LOCKED") showLock("আবার ID ও Password দিন"); throw Object.assign(new Error(j.error || "সমস্যা"), { j }); }
+      if (!j.ok) { if (["PIN", "LOCKED", "DISABLED"].includes(j.error)) showLock("আবার ID ও Password দিন"); throw Object.assign(new Error(j.error || "সমস্যা"), { j }); }
       no = j.no;
     } else {
       const n = store.get("counter", 0) + 1; store.set("counter", n);
@@ -783,7 +788,7 @@ $("f").addEventListener("submit", async e => {
   }
   const s = store.get("senders", {}); s[d.senderPhone] = d.senderName; store.set("senders", s);
   last = { no, when: nowStr(), fromName: ME.name, fromCode: ME.code, ...d };
-  $("doneNo").textContent = no; $("done").style.display = "block";
+  $("doneNo").textContent = no; $("done").style.display = "block"; dropCache();
   const m2 = money(d);
   $("sum").textContent = "ক্যারিং " + (m2.carC + m2.carT) + " | পেইড " + m2.paid + " | ডিউ " + m2.due;
   $("f").reset(); $("lot").value = 1; $("tk").style.display = "none"; scrollTo(0, 0);
